@@ -1,41 +1,49 @@
-// src/components/Cocina.jsx
 import React, { useState } from 'react';
 import { Header } from './Layouts';
 
 const initialOrdenes = [
-    { id: 789, estado: 'pendiente', pago: 'Efectivo', items: [{nombre: 'Hamburguesa', cantidad: 1}, {nombre: 'Salchipapa', cantidad: 1}] },
-    { id: 788, estado: 'preparacion', pago: 'Tarjeta', items: [{nombre: 'Pollo Frito', cantidad: 2}, {nombre: 'Papas Grandes', cantidad: 1}] },
-    { id: 787, estado: 'listo', pago: 'QR', items: [{nombre: 'Salchiburguer', cantidad: 1}, {nombre: 'Soda', cantidad: 1}] },
+    { id: 789, estado: 'pendiente', pago: 'Efectivo', items: [{nombre: 'Hamburguesa Doble', cantidad: 1}, {nombre: 'Salchipapa', cantidad: 1}], hora: '12:30' },
+    { id: 788, estado: 'preparacion', pago: 'Tarjeta', items: [{nombre: 'Pollo Frito (5 pzas)', cantidad: 2}, {nombre: 'Papas Grandes', cantidad: 1}], hora: '12:25' },
+    { id: 787, estado: 'listo', pago: 'QR', items: [{nombre: 'Salchiburguer', cantidad: 1}, {nombre: 'Soda 2L', cantidad: 1}], hora: '12:15' },
+    { id: 790, estado: 'pendiente', pago: 'Efectivo', items: [{nombre: 'Pipocas de Pollo', cantidad: 2}], hora: '12:32' },
 ];
 
 const OrderCard = ({ orden, moverOrden }) => {
     let buttonHTML = null;
-    let statusColor = '';
     
     if (orden.estado === 'pendiente') {
-        buttonHTML = <button className="btn-iniciar-prep" onClick={() => moverOrden(orden.id, 'preparacion')}>Iniciar Preparación</button>;
-        statusColor = '#ffc107'; 
+        buttonHTML = (
+            <button className="btn-accion-cocina btn-iniciar" onClick={() => moverOrden(orden.id, 'preparacion')}>
+                COCINAR <i className="fas fa-fire"></i>
+            </button>
+        );
     } else if (orden.estado === 'preparacion') {
-        buttonHTML = <button className="btn-marcar-listo" onClick={() => moverOrden(orden.id, 'listo')}>Marcar como Listo</button>;
-        statusColor = '#17a2b8'; 
+        buttonHTML = (
+            <button className="btn-accion-cocina btn-terminar" onClick={() => moverOrden(orden.id, 'listo')}>
+                TERMINAR <i className="fas fa-check"></i>
+            </button>
+        );
     } else if (orden.estado === 'listo') {
-        buttonHTML = <span style={{color: '#28a745', fontWeight: 'bold'}}>¡Listo para entregar!</span>;
-        statusColor = '#28a745'; 
+        buttonHTML = <span className="status-badge"><i className="fas fa-check-circle"></i> LISTO</span>;
     }
 
     return (
-        <div className={`orden-card ${orden.estado}`} data-id={orden.id}>
+        <div className={`orden-card ${orden.estado}`}>
             <div className="orden-header">
-                <span>Pedido #{orden.id}</span> 
-                <span style={{color: statusColor}}>{orden.estado.charAt(0).toUpperCase() + orden.estado.slice(1)}</span> 
+                <span className="orden-id">#{orden.id}</span>
+                <span className="orden-timer"><i className="far fa-clock"></i> {orden.hora}</span>
             </div>
+            
             <ul className="orden-items">
                 {orden.items.map((item, i) => (
-                    <li key={i}>{item.cantidad}x {item.nombre}</li>
+                    <li key={i}>
+                        <strong>{item.cantidad}x</strong> {item.nombre}
+                    </li>
                 ))}
             </ul>
+            
             <div className="orden-footer">
-                <span>Pago: {orden.pago}</span> 
+                <span className="orden-pago">{orden.pago}</span>
                 {buttonHTML}
             </div>
         </div>
@@ -49,13 +57,12 @@ export const Cocina = ({ onLogout, userName }) => {
         setOrdenes(ordenes.map(orden => 
             orden.id === id ? { ...orden, estado: nuevoEstado } : orden
         ));
-        alert(`Pedido #${id} movido a ${nuevoEstado.charAt(0).toUpperCase() + nuevoEstado.slice(1)}.`);
     };
 
     const renderColumn = (estado, title) => (
         <div className={`ordenes-col col-${estado}`}>
-            <h3>{title}</h3> 
-            <div id={`${estado}-list`}>
+            <h3>{title.toUpperCase()}</h3> 
+            <div className="ordenes-list">
                 {ordenes.filter(o => o.estado === estado).map(orden => (
                     <OrderCard key={orden.id} orden={orden} moverOrden={moverOrden} />
                 ))}
@@ -64,19 +71,18 @@ export const Cocina = ({ onLogout, userName }) => {
     );
 
     return (
-        <div id="cocina-view" className="view active-view">
+        <div id="cocina-view" className="view">
             <Header 
-                title="SABOR VELOZ - COCINA" 
+                title="SABOR VELOZ KDS" 
                 role="COCINA" 
                 userName={userName} 
                 onLogout={onLogout}
             />
-            <h1 style={{color: 'var(--color-secondary)', margin: '20px 0', textAlign: 'center'}}>COCINA</h1> 
-
+            
             <div className="ordenes-layout">
                 {renderColumn('pendiente', 'Pendientes')} 
                 {renderColumn('preparacion', 'En Preparación')} 
-                {renderColumn('listo', 'Listos')} 
+                {renderColumn('listo', 'Listos para Entregar')} 
             </div>
         </div>
     );

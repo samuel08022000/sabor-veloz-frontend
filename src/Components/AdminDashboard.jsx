@@ -1,57 +1,19 @@
-// src/components/AdminDashboard.jsx
 import React, { useState } from 'react';
 import { Header, AdminNav } from './Layouts';
 
-const PanelCaja = () => (
-    <div id="caja-view" className="sub-view active-sub-view">
-        <h2>Panel de Caja</h2> 
-        
-        <div className="apertura-caja-form">
-            <h3>Abrir Caja</h3> 
-            <div className="caja-input-row">
-                <label>Monto Inicial</label>
-                <input type="number" placeholder="$" defaultValue="100.00" /> 
-                <span>14/11/2025</span> 
-            </div>
-            <div className="caja-input-row">
-                <label>Cajero/Fecha</label> 
-                <input type="text" defaultValue="Ana Pérez" readOnly /> 
-                <i className="fas fa-calendar-alt"></i>
-            </div>
-            <button className="caja-confirm-btn">Confirmar Apertura</button> 
-        </div>
-
-        <h3 style={{marginBottom: '20px'}}>Resumen Diario</h3> 
-        <div className="resumen-diario">
-            <div className="resumen-card vendido">
-                <strong>Total Vendido Hoy:</strong> 
-                <span>$250.00</span> 
-            </div>
-            <div className="resumen-card caja">
-                <strong>Total en Caja:</strong> 
-                <span>$300.00</span> 
-            </div>
-        </div>
-        <button className="btn btn-cerrar-caja">Cerrar Caja</button> 
-    </div>
-);
-
+// Componente para Gestión de Productos (Mejorado visualmente en CSS)
 const GestionProductos = () => (
-    <div id="gestion-productos-view" className="sub-view active-sub-view">
-        <h2>Gestión de Productos</h2> 
-        <div className="gestion-acciones">
-            <button className="btn-nuevo-producto">
-                <i className="fas fa-plus"></i> Nuevo Producto 
+    <div id="gestion-productos-view" className="sub-view">
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+            <h2 style={{color: 'var(--primary)', fontSize: '2rem'}}>Inventario</h2> 
+            <button className="btn-primary" style={{width: 'auto', padding: '10px 20px'}}>
+                + Nuevo Producto
             </button>
-            <div className="search-bar">
-                <input type="text" placeholder="Buscar producto..." />
-            </div>
         </div>
         
         <table className="productos-table">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Nombre</th>
                     <th>Categoría</th>
                     <th>Precio</th>
@@ -60,99 +22,143 @@ const GestionProductos = () => (
                 </tr>
             </thead>
             <tbody>
-                <tr><td>1</td><td>Hamburguesa</td><td>Platos</td><td>$5.00</td><td><span style={{color: 'green'}}>Activo</span></td><td><button className="btn-accion btn-editar">Editar</button><button className="btn-accion btn-eliminar">Eliminar</button></td></tr>
-                <tr><td>2</td><td>Salchipapa</td><td>Platos</td><td>$4.00</td><td><span style={{color: 'green'}}>Activo</span></td><td><button className="btn-accion btn-editar">Editar</button><button className="btn-accion btn-eliminar">Eliminar</button></td></tr>
-                <tr><td>3</td><td>Refresco</td><td>Bebidas</td><td>$2.00</td><td><span style={{color: 'green'}}>Activo</span></td><td><button className="btn-accion btn-editar">Editar</button><button className="btn-accion btn-eliminar">Eliminar</button></td></tr>
+                <tr><td>Hamburguesa Doble</td><td>Platos</td><td>$5.00</td><td><span style={{color: 'green'}}>Activo</span></td><td><button>Editar</button></td></tr>
+                <tr><td>Salchipapa</td><td>Platos</td><td>$4.00</td><td><span style={{color: 'green'}}>Activo</span></td><td><button>Editar</button></td></tr>
+                <tr><td>Coca Cola</td><td>Bebidas</td><td>$2.00</td><td><span style={{color: 'green'}}>Activo</span></td><td><button>Editar</button></td></tr>
             </tbody>
         </table>
     </div>
 );
+
+// ... (imports anteriores)
 
 const ReportesVentas = () => (
-    <div id="reportes-view" className="sub-view active-sub-view">
-        <h2>Reportes de Ventas</h2> 
-        
-        <div className="export-buttons">
-            <button className="btn-excel"><i className="fas fa-file-excel"></i> Exportar a Excel</button> 
-            <button className="btn-pdf"><i className="fas fa-file-pdf"></i> PDF</button> 
-        </div>
-
-        <div className="reporte-overview">
-            <div className="kpi-card">
-                <strong>Ventas del Día:</strong> 
-                <span>$550.00</span> 
-            </div>
-            <div className="kpi-card">
-                <strong>Ventas de la Semana:</strong> 
-                <span>$3,100.00</span> 
-            </div>
-            <div className="kpi-card">
-                <strong>Ventas del Mes:</strong> 
-                <span>$12,500.00</span> 
-            </div>
-            <div className="kpi-card">
-                <strong>Ventas del Año:</strong> 
-                <span>$140,000.00</span> 
+    <div id="reportes-view" className="sub-view animated-fade-in">
+        {/* Encabezado con Título y Botones de Exportar */}
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px'}}>
+            <h2 style={{color: 'var(--primary)', fontSize: '2.5rem', margin: 0}}>DASHBOARD FINANCIERO</h2> 
+            <div style={{display: 'flex', gap: '10px'}}>
+                <button className="btn-secondary" onClick={() => alert("Exportando Excel...")}>
+                    <i className="fas fa-file-excel" style={{marginRight: '8px', color: '#10b981'}}></i> Exportar Excel
+                </button>
+                <button className="btn-secondary" onClick={() => alert("Generando PDF...")}>
+                    <i className="fas fa-file-pdf" style={{marginRight: '8px', color: '#ef4444'}}></i> PDF
+                </button>
             </div>
         </div>
 
-        <div className="chart-container">
+        {/* 1. Tarjetas de Resumen (KPIs) - Restaurando las 4 métricas */}
+        <div className="kpi-grid">
+            <div className="kpi-card">
+                <div className="kpi-icon icon-day"><i className="fas fa-calendar-day"></i></div>
+                <div className="kpi-info">
+                    <span>Ventas Hoy</span>
+                    <strong>$550.00</strong>
+                </div>
+            </div>
+            <div className="kpi-card">
+                <div className="kpi-icon icon-week"><i className="fas fa-calendar-week"></i></div>
+                <div className="kpi-info">
+                    <span>Esta Semana</span>
+                    <strong>$3,100.00</strong>
+                </div>
+            </div>
+            <div className="kpi-card">
+                <div className="kpi-icon icon-month"><i className="fas fa-calendar-alt"></i></div>
+                <div className="kpi-info">
+                    <span>Este Mes</span>
+                    <strong>$12,500.00</strong>
+                </div>
+            </div>
+            <div className="kpi-card">
+                <div className="kpi-icon icon-year"><i className="fas fa-chart-line"></i></div>
+                <div className="kpi-info">
+                    <span>Total Año</span>
+                    <strong>$140,000.00</strong>
+                </div>
+            </div>
+        </div>
+
+        {/* 2. Sección de Gráficos (Simulada pero estilizada) */}
+        <div className="charts-grid">
             <div className="chart-box">
-                <h3>Ventas vs. Tiempo</h3> 
-                <div className="chart-sim">(Simulación de Gráfico Lineal: Ene - Oct)</div> 
+                <h3><i className="fas fa-chart-area"></i> Ventas vs. Tiempo</h3> 
+                <div className="chart-placeholder">
+                    {/* Aquí iría <Line options={...} data={...} /> de Chart.js */}
+                    <div className="fake-graph-line"></div>
+                    <span>(Gráfico de Ventas Mensuales)</span>
+                </div> 
             </div>
             <div className="chart-box">
-                <h3>Rendimiento por Categoría</h3> 
-                <div className="chart-sim">(Simulación de Gráfico de Barras: Platos, Bebidas, Postres)</div> 
+                <h3><i className="fas fa-chart-pie"></i> Rendimiento por Categoría</h3> 
+                <div className="chart-placeholder">
+                    {/* Aquí iría <Bar options={...} data={...} /> */}
+                    <div className="fake-graph-bar">
+                        <div style={{height: '60%'}}></div>
+                        <div style={{height: '80%'}}></div>
+                        <div style={{height: '40%'}}></div>
+                    </div>
+                    <span>(Platos vs Bebidas)</span>
+                </div> 
             </div>
         </div>
         
-        <h3>Detalle de Ventas Mensual (Octubre 2025)</h3>
-        <table className="productos-table" style={{marginTop: '15px'}}>
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Tipo de Pago</th>
-                    <th>Monto Total</th>
-                    <th>Detalle</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>01/10/2025</td><td>Efectivo</td><td>$250.00</td><td>2x Combo Hamburguesa</td></tr>
-                <tr><td>02/10/2025</td><td>Tarjeta</td><td>$120.00</td><td>1x Salchipapa + Refresco</td></tr>
-                <tr><td>03/10/2025</td><td>QR</td><td>$300.00</td><td>2x Pipocas de Pollo</td></tr>
-            </tbody>
-        </table>
+        {/* 3. Tabla de Detalles Restaurada */}
+        <div style={{marginTop: '30px'}}>
+            <h3 style={{fontFamily: 'var(--font-brand)', fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '15px'}}>
+                Detalle de Transacciones Recientes
+            </h3>
+            <div style={{overflowX: 'auto', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-sm)'}}>
+                <table className="productos-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo de Pago</th>
+                            <th>Monto Total</th>
+                            <th>Detalle Orden</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>01/10/2025</td><td><span className="badge-pago efectivo">Efectivo</span></td><td>$250.00</td><td>2x Combo Hamburguesa</td><td><span style={{color: '#10b981', fontWeight: 'bold'}}>Completado</span></td></tr>
+                        <tr><td>02/10/2025</td><td><span className="badge-pago tarjeta">Tarjeta</span></td><td>$120.00</td><td>1x Salchipapa + Refresco</td><td><span style={{color: '#10b981', fontWeight: 'bold'}}>Completado</span></td></tr>
+                        <tr><td>03/10/2025</td><td><span className="badge-pago qr">QR</span></td><td>$300.00</td><td>2x Pipocas de Pollo</td><td><span style={{color: '#10b981', fontWeight: 'bold'}}>Completado</span></td></tr>
+                        <tr><td>03/10/2025</td><td><span className="badge-pago efectivo">Efectivo</span></td><td>$50.00</td><td>1x Hamburguesa Simple</td><td><span style={{color: '#f59e0b', fontWeight: 'bold'}}>Pendiente</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 );
 
+// ... (resto del AdminDashboard)
+
 export const AdminDashboard = ({ onLogout, userName }) => {
-    const [activeSubView, setActiveSubView] = useState('caja-view');
+    // Al eliminar PanelCaja, cambiamos la vista por defecto a productos
+    const [activeSubView, setActiveSubView] = useState('gestion-productos-view');
 
     const renderSubView = () => {
         switch (activeSubView) {
+            case 'reportes-view': return <ReportesVentas />;
             case 'gestion-productos-view':
-                return <GestionProductos />;
-            case 'reportes-view':
-                return <ReportesVentas />;
-            case 'caja-view':
-            default:
-                return <PanelCaja />;
+            default: return <GestionProductos />;
         }
     };
 
     return (
-        <div id="dashboard-view" className="view active-view">
+        <div id="dashboard-view" className="view">
             <Header 
-                title="SABOR VELOZ" 
-                role="Administrador" 
+                title="SABOR VELOZ ADMIN" 
+                role="ADMINISTRADOR" 
                 userName={userName} 
                 onLogout={onLogout}
                 extraContent={
                     <AdminNav activeView={activeSubView} onNavChange={setActiveSubView} />
                 }
             />
-            {renderSubView()}
+            <div style={{padding: '30px', maxWidth: '1200px', margin: '0 auto', width: '100%'}}>
+                {renderSubView()}
+            </div>
         </div>
     );
 };
