@@ -1,47 +1,52 @@
-// src/components/Login.jsx
 import React, { useState } from 'react';
-
-// Simulamos la función de login que luego conectarás a tu API de ASP.NET
-const simulatedLogin = (usuario, rol) => {
-    // ** AQUÍ IRÍA LA LLAMADA A TU API ASP.NET **
-    // Ejemplo: const response = await fetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ usuario, contraseña, rol }) });
-    console.log(`Intentando iniciar sesión como ${rol} con usuario: ${usuario}`);
-
-    // Simulación de éxito (Acepta cualquier usuario siempre que no esté vacío)
-    if (usuario && rol) {
-        return { success: true, role: rol };
-    }
-    return { success: false, message: 'Usuario o rol no válidos.' };
-};
+import api from '../api/axios'; // Importamos nuestra config
 
 export const Login = ({ onLoginSuccess }) => {
     const [usuario, setUsuario] = useState('');
-    const [contrasena, setContrasena] = useState('');
-    const [rol, setRol] = useState('admin');
+    const [password, setPassword] = useState(''); // Backend espera "Password", no "contrasena"
     const [error, setError] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
-        const result = simulatedLogin(usuario, rol);
+        try {
+            // El DTO del backend espera { Usuario, Password }
+            const response = await api.post('/Auth/login', { 
+                Usuario: usuario, 
+                Password: password 
+            });
 
-        if (result.success) {
-            onLoginSuccess(result.role, usuario); 
-        } else {
-            setError(result.message || 'Credenciales inválidas.');
+            // Si llegamos aquí, es 200 OK.
+            // Pasamos todos los datos (IdUsuario, Rol, Nombre) hacia arriba
+            onLoginSuccess({
+                idUsuario: response.data.idUsuario, // Asegúrate de agregar esto en el backend
+                nombre: response.data.nombre,
+                usuario: response.data.usuario,
+                rol: response.data.rol
+            });
+
+        } catch (err) {
+            console.error(err);
+            if (err.response) {
+                if (err.response.status === 401) setError('Usuario o contraseña incorrectos.');
+                else setError(`Error: ${err.response.data || 'Error en el servidor'}`);
+            } else {
+                setError('No se pudo conectar con el servidor.');
+            }
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div id="login-view" className="view active-view">
+        <div id="login-view" className="view">
             <div className="login-container">
-                {/* Logo estilizado con la clase CSS correcta */}
                 <h1 className="logo-login">SABOR VELOZ</h1>
-
                 <div className="login-form-box">
-                    <form onSubmit={handleSubmit} id="loginForm">
+                    <form onSubmit={handleSubmit}>
                         <div className="input-group">
                             <input 
                                 type="text" 
@@ -51,45 +56,23 @@ export const Login = ({ onLoginSuccess }) => {
                                 onChange={(e) => setUsuario(e.target.value)}
                             />
                         </div>
-                        
                         <div className="input-group">
-                            <div className="password-input-wrapper">
-                                <input 
-                                    type={showPassword ? 'text' : 'password'} 
-                                    placeholder="Contraseña" 
-                                    required
-                                    value={contrasena}
-                                    onChange={(e) => setContrasena(e.target.value)}
-                                />
-                                <i 
-                                    className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'} toggle-password`}
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', cursor: 'pointer', color: '#666' }}
-                                ></i>
-                            </div>
+                            <input 
+                                type="password" 
+                                placeholder="Contraseña" 
+                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
                         </div>
 
-                        {/* Botones de Rol Segmentados */}
-                        <div className="radio-group">
-                            {['Admin', 'Cajero', 'Cocina'].map(r => (
-                                <div key={r}>
-                                    <input 
-                                        type="radio" 
-                                        id={`rol${r}`} 
-                                        name="rol" 
-                                        value={r.toLowerCase()} 
-                                        checked={rol === r.toLowerCase()}
-                                        onChange={() => setRol(r.toLowerCase())}
-                                    />
-                                    <label htmlFor={`rol${r}`}>{r}</label>
-                                </div>
-                            ))}
-                        </div>
-
-                        <button type="submit" className="btn btn-primary">Iniciar Sesión</button>
+                        {/* Eliminamos el selector de roles manual, el backend decide el rol */}
+                        
+                        <button type="submit" className="btn-primary" disabled={loading}>
+                            {loading ? 'Cargando...' : 'Iniciar Sesión'}
+                        </button>
                     </form>
-                    
-                    {error && <p className="error-message" style={{display: 'block'}}>{error}</p>}
+                    {error && <p className="error-message" style={{color: 'red', marginTop: '10px'}}>{error}</p>}
                 </div>
             </div>
         </div>

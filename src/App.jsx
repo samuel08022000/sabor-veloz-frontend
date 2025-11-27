@@ -1,45 +1,46 @@
-// src/App.jsx
-import React, { useState } from 'react';
-import { Login } from './components/Login';
-import { AdminDashboard } from './components/AdminDashboard';
-import { Cajero } from './components/Cajero';
-import { Cocina } from './components/Cocina';
+import React, { useState, useEffect } from 'react';
+import { Login } from './Components/Login';
+import { AdminDashboard } from './Components/AdminDashboard';
+import { Cajero } from './Components/Cajero';
+import { Cocina } from './Components/Cocina';
 import './index.css'; 
 
 function App() {
-    const [currentView, setCurrentView] = useState('login');
-    const [userRole, setUserRole] = useState(null);
-    const [userName, setUserName] = useState('');
+    // Intentar recuperar sesión de localStorage al cargar
+    const [currentUser, setCurrentUser] = useState(() => {
+        const saved = localStorage.getItem('saborVelozUser');
+        return saved ? JSON.parse(saved) : null;
+    });
 
-    const handleLoginSuccess = (role, user) => {
-        setUserRole(role);
-        setUserName(user);
-        setCurrentView(role);
+    const handleLoginSuccess = (userData) => {
+        console.log("Usuario logueado:", userData);
+        setCurrentUser(userData);
+        localStorage.setItem('saborVelozUser', JSON.stringify(userData));
     };
 
     const handleLogout = () => {
-        setUserRole(null);
-        setUserName('');
-        setCurrentView('login');
+        setCurrentUser(null);
+        localStorage.removeItem('saborVelozUser');
+        // Opcional: Llamar a endpoint de logout si existiera
     };
 
-    const renderView = () => {
-        switch (currentView) {
-            case 'admin':
-                return <AdminDashboard onLogout={handleLogout} userName={userName} />;
-            case 'cajero':
-                return <Cajero onLogout={handleLogout} userName={userName} />;
-            case 'cocina':
-                return <Cocina onLogout={handleLogout} userName={userName} />;
-            case 'login':
-            default:
-                return <Login onLoginSuccess={handleLoginSuccess} />;
-        }
-    };
+    if (!currentUser) {
+        return <Login onLoginSuccess={handleLoginSuccess} />;
+    }
 
-    return (
-        <>{renderView()}</>
-    );
+    // Renderizar según el Rol que viene del Backend
+    switch (currentUser.rol) { // Backend envía "Administrador", "Cajero", "Cocina"
+        case 'Administrador':
+        case 'Admin':
+            return <AdminDashboard onLogout={handleLogout} userName={currentUser.nombre} />;
+        case 'Cajero':
+            return <Cajero onLogout={handleLogout} user={currentUser} />;
+        case 'Cocina':
+        case 'Cocinero':
+            return <Cocina onLogout={handleLogout} userName={currentUser.nombre} />;
+        default:
+            return <div className="view">Rol no reconocido: {currentUser.rol} <button onClick={handleLogout}>Salir</button></div>;
+    }
 }
 
 export default App;

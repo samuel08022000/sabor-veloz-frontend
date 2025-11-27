@@ -1,21 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from './Layouts';
+import api from '../api/axios';
 
-// Datos de simulación
-const initialProducts = [
-    { id: 1, nombre: "Hamburguesa Clásica", precio: 50.00, categoria: "platos" },
-    { id: 2, nombre: "Salchipapa Especial", precio: 40.00, categoria: "platos" },
-    { id: 3, nombre: "Salchiburguer", precio: 60.00, categoria: "platos" },
-    { id: 4, nombre: "Pollo Broaster", precio: 75.00, categoria: "platos" },
-    { id: 5, nombre: "Pipocas de Carne", precio: 35.00, categoria: "platos" },
-    { id: 6, nombre: "Coca Cola 500ml", precio: 10.00, categoria: "bebidas" },
-    { id: 7, nombre: "Agua Mineral", precio: 5.00, categoria: "bebidas" },
-    { id: 8, nombre: "Flan Casero", precio: 15.00, categoria: "postres" }
-];
-
-// Componente para Abrir Caja (Movido desde Admin)
-const AperturaCaja = ({ onAbrirCaja, userName }) => {
-    const [montoInicial, setMontoInicial] = useState('100.00');
+// Componente Apertura de Caja
+const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
+    const [montoInicial, setMontoInicial] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -25,17 +14,14 @@ const AperturaCaja = ({ onAbrirCaja, userName }) => {
     return (
         <div className="apertura-caja-container">
             <div className="apertura-caja-card">
-                {/* 🔥 ENVUELVE EL ICONO EN ESTE DIV CLASS "icon-container" */}
                 <div className="icon-container">
                     <i className="fas fa-cash-register" style={{fontSize: '2.5rem', color: '#9e1b32'}}></i>
                 </div>
-                {/* 🔥 FIN DEL CAMBIO */}
-
                 <h2>APERTURA DE CAJA</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="caja-input-group">
                         <label>Cajero Responsable</label>
-                        <input type="text" value={userName} readOnly style={{backgroundColor: '#f9fafb'}} />
+                        <input type="text" value={userName} readOnly />
                     </div>
                     <div className="caja-input-group">
                         <label>Monto Inicial (Efectivo)</label>
@@ -44,24 +30,31 @@ const AperturaCaja = ({ onAbrirCaja, userName }) => {
                             value={montoInicial} 
                             onChange={(e) => setMontoInicial(e.target.value)}
                             step="0.01"
+                            placeholder="0.00"
                             required 
                         />
                     </div>
-                    <button type="submit" className="btn-primary">CONFIRMAR APERTURA</button>
+                    <button type="submit" className="btn-primary" disabled={loading}>
+                        {loading ? 'ABRIENDO...' : 'CONFIRMAR APERTURA'}
+                    </button>
                 </form>
             </div>
         </div>
     );
 };
 
-// Componente del POS (Punto de Venta)
-const POSInterface = ({ products, onLogout }) => {
+// POS Interface
+const POSInterface = ({ products, onLogout, usuarioObj }) => {
     const [pedidoActual, setPedidoActual] = useState([]);
-    const [activeTab, setActiveTab] = useState('general');
+    const [activeTab, setActiveTab] = useState('General');
+    const [procesando, setProcesando] = useState(false);
+
+    // Mapeo de categorías del backend a las pestañas del frontend
+    const categoriasBackend = [...new Set(products.map(p => p.categoria))];
+    const tabs = ['General', ...categoriasBackend];
 
     const agregarApedido = (producto) => {
-        const existingItemIndex = pedidoActual.findIndex(item => item.id === producto.id);
-
+        const existingItemIndex = pedidoActual.findIndex(item => item.idProducto === producto.idProducto);
         if (existingItemIndex > -1) {
             const updatedPedido = [...pedidoActual];
             updatedPedido[existingItemIndex].cantidad += 1;
@@ -72,7 +65,7 @@ const POSInterface = ({ products, onLogout }) => {
     };
     
     const removerDePedido = (id) => {
-        const itemIndex = pedidoActual.findIndex(p => p.id === id);
+        const itemIndex = pedidoActual.findIndex(p => p.idProducto === id);
         if (itemIndex > -1) {
             const updatedPedido = [...pedidoActual];
             updatedPedido[itemIndex].cantidad -= 1;
@@ -81,29 +74,54 @@ const POSInterface = ({ products, onLogout }) => {
         }
     };
 
-    const calcularTotal = () => pedidoActual.reduce((sum, item) => sum + (item.cantidad * item.precio), 0).toFixed(2);
+    const registrarVenta = async (tipoPedido) => { // "Local" o "Llevar"
+        if (pedidoActual.length === 0) return alert("Pedido vacío");
+        setProcesando(true);
 
-    const filteredProducts = products.filter(p => activeTab === 'general' || p.categoria === activeTab);
+        // Armar el DTO exacto que espera VentasController
+        const ventaDto = {
+            Usuario: usuarioObj.usuario, // string username
+            MetodoPago: "Efectivo", // Por ahora hardcodeado, puedes agregar selector
+            TipoPedido: tipoPedido,
+            Productos: pedidoActual.map(p => ({
+                IdProducto: p.idProducto,
+                Cantidad: p.cantidad
+            }))
+        };
+
+        try {
+            const res = await api.post('/Ventas/registrar', ventaDto);
+            alert(`✅ ¡Venta Registrada!\nTicket: ${res.data.ticket}\nTotal: $${res.data.total}`);
+            setPedidoActual([]);
+        } catch (error) {
+            console.error(error);
+            alert("❌ Error al registrar venta: " + (error.response?.data || error.message));
+        } finally {
+            setProcesando(false);
+        }
+    };
+
+    const total = pedidoActual.reduce((sum, item) => sum + (item.cantidad * item.precio), 0).toFixed(2);
+    const filteredProducts = products.filter(p => activeTab === 'General' || p.categoria === activeTab);
 
     return (
         <div className="cajero-layout">
             <section className="menu-section">
                 <div className="menu-tabs">
-                    {['General', 'Platos', 'Bebidas', 'Postres'].map(tab => (
+                    {tabs.map(tab => (
                         <button 
-                            key={tab}
-                            className={`tab-button ${activeTab === tab.toLowerCase() ? 'active' : ''}`} 
-                            onClick={() => setActiveTab(tab.toLowerCase())}
+                            key={tab} 
+                            className={`tab-button ${activeTab === tab ? 'active' : ''}`} 
+                            onClick={() => setActiveTab(tab)}
                         >
                             {tab}
                         </button>
                     ))}
                 </div>
-                
                 <div className="product-grid">
                     {filteredProducts.map(p => (
-                        <div key={p.id} className="product-card" onClick={() => agregarApedido(p)}>
-                            <span>{p.nombre}</span>
+                        <div key={p.idProducto} className="product-card" onClick={() => agregarApedido(p)}>
+                            <span>{p.nombreProducto}</span>
                             <div className="price">${p.precio.toFixed(2)}</div>
                         </div>
                     ))}
@@ -113,68 +131,89 @@ const POSInterface = ({ products, onLogout }) => {
             <section className="pedido-section">
                 <div className="pedido-header">Ticket Actual</div>
                 <div className="pedido-lista">
-                    {pedidoActual.length === 0 ? (
-                        <p style={{textAlign: 'center', color: '#9ca3af', marginTop: '50px'}}>Seleccione productos...</p>
-                    ) : (
-                        pedidoActual.map((item) => (
-                            <div key={item.id} className="pedido-item">
-                                <div className="pedido-item-info">
-                                    <span className="pedido-item-name">{item.nombre}</span>
-                                    <span className="pedido-item-price">${item.precio} x {item.cantidad}</span>
-                                </div>
-                                <div className="pedido-actions">
-                                    <strong>${(item.cantidad * item.precio).toFixed(2)}</strong>
-                                    <span className="pedido-item-remove" onClick={() => removerDePedido(item.id)}>×</span>
-                                </div>
+                    {pedidoActual.map((item) => (
+                        <div key={item.idProducto} className="pedido-item">
+                            <div className="pedido-item-info">
+                                <span className="pedido-item-name">{item.nombreProducto}</span>
+                                <span className="pedido-item-price">${item.precio} x {item.cantidad}</span>
                             </div>
-                        ))
-                    )}
+                            <div className="pedido-actions">
+                                <strong>${(item.cantidad * item.precio).toFixed(2)}</strong>
+                                <span className="pedido-item-remove" onClick={() => removerDePedido(item.idProducto)}>×</span>
+                            </div>
+                        </div>
+                    ))}
                 </div>
-
-                <div className="total-display">
-                    Total: ${calcularTotal()}
-                </div>
-
+                <div className="total-display">Total: ${total}</div>
                 <div className="action-buttons">
-                    <button className="btn-registra" onClick={() => alert("Venta Registrada")}>COBRAR</button>
-                    <button className="btn-cocina" onClick={() => alert("Enviado a Cocina")}>A COCINA</button>
+                    <button className="btn-registra" onClick={() => registrarVenta("Local")} disabled={procesando}>
+                        <i className="fas fa-utensils"></i> COMER AQUÍ
+                    </button>
+                    <button className="btn-cocina" onClick={() => registrarVenta("Llevar")} disabled={procesando}>
+                        <i className="fas fa-shopping-bag"></i> LLEVAR
+                    </button>
                 </div>
             </section>
         </div>
     );
 };
 
-export const Cajero = ({ onLogout, userName }) => {
-    const [cajaAbierta, setCajaAbierta] = useState(false); // Estado para controlar si la caja se abrió
-    const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
-
+export const Cajero = ({ onLogout, user }) => {
+    const [cajaAbierta, setCajaAbierta] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [products, setProducts] = useState([]);
+    
+    // 1. Verificar estado de caja al cargar
     useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date().toLocaleTimeString()), 1000);
-        return () => clearInterval(timer);
+        const fetchEstado = async () => {
+            try {
+                const res = await api.get('/Caja/estado');
+                if (res.data.abierta) {
+                    setCajaAbierta(true);
+                    loadProductos();
+                }
+            } catch (error) {
+                console.error("Error consultando caja", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchEstado();
     }, []);
 
-    const handleAbrirCaja = (monto) => {
-        // AQUÍ CONECTARÁS CON TU BACKEND PARA REGISTRAR LA APERTURA
-        console.log(`Caja abierta con monto: ${monto}`);
-        setCajaAbierta(true);
+    const loadProductos = async () => {
+        try {
+            const res = await api.get('/Productos/lista');
+            setProducts(res.data);
+        } catch (error) {
+            console.error("Error cargando productos", error);
+        }
+    };
+
+    const handleAbrirCaja = async (monto) => {
+        setLoading(true);
+        try {
+            // El backend espera CajaDTO: { IdUsuario, MontoInicial }
+            await api.post('/Caja/abrir', {
+                IdUsuario: user.idUsuario, // Usamos el ID del usuario logueado
+                MontoInicial: parseFloat(monto)
+            });
+            setCajaAbierta(true);
+            loadProductos();
+        } catch (error) {
+            alert("Error al abrir caja: " + (error.response?.data || error.message));
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
         <div id="cajero-view" className="view">
-            <Header 
-                title="SABOR VELOZ" 
-                role="CAJERO" 
-                userName={userName} 
-                onLogout={onLogout}
-                extraContent={<span style={{color: 'white', fontWeight: 'bold'}}>{currentTime}</span>}
-            />
-            
-            {/* RENDERIZADO CONDICIONAL: ¿Caja Abierta? */}
-            {!cajaAbierta ? (
-                <AperturaCaja onAbrirCaja={handleAbrirCaja} userName={userName} />
-            ) : (
-                <POSInterface products={initialProducts} onLogout={onLogout} />
-            )}
+            <Header title="SABOR VELOZ" role="CAJERO" userName={user.nombre} onLogout={onLogout} />
+            {loading ? <div style={{padding: 40, textAlign: 'center'}}>Cargando sistema...</div> : 
+             !cajaAbierta ? <AperturaCaja onAbrirCaja={handleAbrirCaja} userName={user.nombre} loading={loading} /> 
+             : <POSInterface products={products} onLogout={onLogout} usuarioObj={user} />
+            }
         </div>
     );
 };

@@ -664,21 +664,29 @@ button {
     letter-spacing: 1px;
 }
 
-/* Colores de Estado (Headers) */
+/* --- CORRECCIÓN DE COLORES COCINA --- */
+
 .col-pendiente h3 { 
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); /* Naranja */
-    color: white;
-} 
-
-.col-preparacion h3 { 
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); /* Azul */
-    color: white;
-} 
-
-.col-listo h3 { 
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%); /* Verde */
-    color: white;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important; 
+    color: white !important;
 }
+
+/* Columna AZUL (En Preparación) */
+.col-preparacion h3 { 
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important; 
+    color: white !important;
+}
+
+/* Columna VERDE (Listos) */
+.col-listo h3 { 
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; 
+    color: white !important;
+}
+
+/* Bordes de las tarjetas */
+.orden-card.pendiente { border-left: 6px solid #f59e0b; }
+.orden-card.preparacion { border-left: 6px solid #3b82f6; }
+.orden-card.listo { border-left: 6px solid #10b981; }
 /* Tarjetas de Orden (Tickets) */
 .orden-card {
     background: white;
@@ -695,11 +703,6 @@ button {
     transform: translateY(-3px);
     box-shadow: var(--shadow-xl);
 }
-
-/* Bordes de color según estado */
-.orden-card.pendiente { border-left-color: #f59e0b; }
-.orden-card.preparacion { border-left-color: #3b82f6; }
-.orden-card.listo { border-left-color: #10b981; }
 
 .orden-header {
     display: flex;

@@ -1,49 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './Layouts';
+import api from '../api/axios';
 
-const initialOrdenes = [
-    { id: 789, estado: 'pendiente', pago: 'Efectivo', items: [{nombre: 'Hamburguesa Doble', cantidad: 1}, {nombre: 'Salchipapa', cantidad: 1}], hora: '12:30' },
-    { id: 788, estado: 'preparacion', pago: 'Tarjeta', items: [{nombre: 'Pollo Frito (5 pzas)', cantidad: 2}, {nombre: 'Papas Grandes', cantidad: 1}], hora: '12:25' },
-    { id: 787, estado: 'listo', pago: 'QR', items: [{nombre: 'Salchiburguer', cantidad: 1}, {nombre: 'Soda 2L', cantidad: 1}], hora: '12:15' },
-    { id: 790, estado: 'pendiente', pago: 'Efectivo', items: [{nombre: 'Pipocas de Pollo', cantidad: 2}], hora: '12:32' },
-];
+// Función para convertir cualquier estado (Pendiente, PENDIENTE, pendiente) a la clase CSS correcta
+const getClaseEstado = (estado) => {
+    if (!estado) return '';
+    const e = estado.toLowerCase();
+    if (e.includes('pendiente')) return 'pendiente';
+    if (e.includes('preparacion') || e.includes('preparación')) return 'preparacion';
+    if (e.includes('listo')) return 'listo';
+    return '';
+};
 
 const OrderCard = ({ orden, moverOrden }) => {
     let buttonHTML = null;
+    const claseCss = getClaseEstado(orden.estado);
     
-    if (orden.estado === 'pendiente') {
+    if (claseCss === 'pendiente') {
         buttonHTML = (
-            <button className="btn-accion-cocina btn-iniciar" onClick={() => moverOrden(orden.id, 'preparacion')}>
+            <button className="btn-accion-cocina btn-iniciar" onClick={() => moverOrden(orden.idComanda, 'En Preparación')}>
                 COCINAR <i className="fas fa-fire"></i>
             </button>
         );
-    } else if (orden.estado === 'preparacion') {
+    } else if (claseCss === 'preparacion') {
         buttonHTML = (
-            <button className="btn-accion-cocina btn-terminar" onClick={() => moverOrden(orden.id, 'listo')}>
+            <button className="btn-accion-cocina btn-terminar" onClick={() => moverOrden(orden.idComanda, 'Listo')}>
                 TERMINAR <i className="fas fa-check"></i>
             </button>
         );
-    } else if (orden.estado === 'listo') {
+    } else if (claseCss === 'listo') {
         buttonHTML = <span className="status-badge"><i className="fas fa-check-circle"></i> LISTO</span>;
     }
 
     return (
-        <div className={`orden-card ${orden.estado}`}>
+        <div className={`orden-card ${claseCss}`}>
             <div className="orden-header">
-                <span className="orden-id">#{orden.id}</span>
-                <span className="orden-timer"><i className="far fa-clock"></i> {orden.hora}</span>
+                <span className="orden-id">#{orden.numeroTicket}</span>
+                <span className="orden-timer">{orden.tipoPedido?.toUpperCase() || 'LOCAL'}</span>
             </div>
-            
             <ul className="orden-items">
-                {orden.items.map((item, i) => (
-                    <li key={i}>
-                        <strong>{item.cantidad}x</strong> {item.nombre}
-                    </li>
+                {orden.productos.map((item, i) => (
+                    <li key={i}><strong>{item.cantidad}x</strong> {item.producto}</li>
                 ))}
             </ul>
-            
             <div className="orden-footer">
-                <span className="orden-pago">{orden.pago}</span>
+                <span className="orden-pago">{new Date(orden.fechaEnvio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 {buttonHTML}
             </div>
         </div>
@@ -51,38 +52,80 @@ const OrderCard = ({ orden, moverOrden }) => {
 };
 
 export const Cocina = ({ onLogout, userName }) => {
-    const [ordenes, setOrdenes] = useState(initialOrdenes);
+    const [ordenes, setOrdenes] = useState([]);
 
-    const moverOrden = (id, nuevoEstado) => {
-        setOrdenes(ordenes.map(orden => 
-            orden.id === id ? { ...orden, estado: nuevoEstado } : orden
-        ));
+    const fetchOrdenes = async () => {
+        try {
+            const res = await api.get('/Cocina/pendientes');
+            console.log("Datos recibidos cocina:", res.data); // <--- MIRAR CONSOLA (F12)
+            setOrdenes(res.data);
+        } catch (error) {
+            console.error("Error cocina:", error);
+        }
     };
 
-    const renderColumn = (estado, title) => (
-        <div className={`ordenes-col col-${estado}`}>
-            <h3>{title.toUpperCase()}</h3> 
-            <div className="ordenes-list">
-                {ordenes.filter(o => o.estado === estado).map(orden => (
-                    <OrderCard key={orden.id} orden={orden} moverOrden={moverOrden} />
-                ))}
-            </div>
-        </div>
-    );
+    useEffect(() => {
+        fetchOrdenes();
+        const interval = setInterval(fetchOrdenes, 5000); // Recargar cada 5s
+        return () => clearInterval(interval);
+    }, []);
+
+    const moverOrden = async (id, nuevoEstado) => {
+        try {
+            await api.put(`/Cocina/actualizar/${id}`, JSON.stringify(nuevoEstado), {
+                headers: { 'Content-Type': 'application/json' }
+            });
+            fetchOrdenes();
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+    };
+
+    // Función flexible para filtrar sin importar mayúsculas/minúsculas
+    const filtrarPorEstado = (estadoBusqueda) => {
+        return ordenes.filter(o => {
+            const estadoOrden = o.estado.toLowerCase();
+            const estadoBuscado = estadoBusqueda.toLowerCase();
+            // Manejo especial para "en preparacion" vs "en preparación"
+            if (estadoBuscado.includes('prepara')) return estadoOrden.includes('prepara');
+            return estadoOrden === estadoBuscado;
+        });
+    };
 
     return (
         <div id="cocina-view" className="view">
-            <Header 
-                title="SABOR VELOZ KDS" 
-                role="COCINA" 
-                userName={userName} 
-                onLogout={onLogout}
-            />
+            <Header title="KDS COCINA" role="COCINA" userName={userName} onLogout={onLogout} />
             
             <div className="ordenes-layout">
-                {renderColumn('pendiente', 'Pendientes')} 
-                {renderColumn('preparacion', 'En Preparación')} 
-                {renderColumn('listo', 'Listos para Entregar')} 
+                {/* Columna 1: Pendientes */}
+                <div className="ordenes-col col-pendiente">
+                    <h3>PENDIENTES</h3>
+                    <div className="ordenes-list">
+                        {filtrarPorEstado('Pendiente').map(orden => (
+                            <OrderCard key={orden.idComanda} orden={orden} moverOrden={moverOrden} />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Columna 2: En Preparación */}
+                <div className="ordenes-col col-preparacion">
+                    <h3>EN PREPARACIÓN</h3>
+                    <div className="ordenes-list">
+                        {filtrarPorEstado('En Preparación').map(orden => (
+                            <OrderCard key={orden.idComanda} orden={orden} moverOrden={moverOrden} />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Columna 3: Listos */}
+                <div className="ordenes-col col-listo">
+                    <h3>LISTOS</h3>
+                    <div className="ordenes-list">
+                        {filtrarPorEstado('Listo').map(orden => (
+                            <OrderCard key={orden.idComanda} orden={orden} moverOrden={moverOrden} />
+                        ))}
+                    </div>
+                </div>
             </div>
         </div>
     );
