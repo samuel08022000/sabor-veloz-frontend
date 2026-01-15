@@ -110,9 +110,41 @@ const GestionProductos = () => {
                                 <td><span style={{padding:'4px 8px', background:'#e5e7eb', borderRadius:'4px', fontSize:'0.85rem'}}>{p.categoria}</span></td>
                                 <td style={{color: 'var(--primary)', fontWeight:'bold'}}>{p.precio.toFixed(2)} Bs</td>
                                 <td><span style={{color: p.disponible ? '#10b981' : '#ef4444', fontWeight: 'bold'}}>{p.disponible ? 'Activo' : 'Inactivo'}</span></td>
+                               {/* 🔥🔥🔥 AQUÍ ESTÁN LOS BOTONES NUEVOS 🔥🔥🔥 */}
                                 <td>
-                                    <button className="btn-secondary" onClick={() => iniciarEdicion(p)} style={{marginRight: '5px', color: '#3b82f6'}}><i className="fas fa-edit"></i></button>
-                                    <button className="btn-secondary" onClick={() => handleEliminar(p.idProducto)} style={{color: '#ef4444'}}><i className="fas fa-trash"></i></button>
+                                    <div style={{display: 'flex', gap: '8px'}}>
+                                        <button 
+                                            onClick={() => iniciarEdicion(p)} 
+                                            style={{
+                                                backgroundColor: '#3b82f6', // Azul
+                                                color: 'white',
+                                                border: 'none',
+                                                padding: '6px 12px',
+                                                borderRadius: '5px',
+                                                cursor: 'pointer',
+                                                fontWeight: 'bold',
+                                                fontSize: '0.85rem'
+                                            }}
+                                        >
+                                            Editar
+                                        </button>
+                                        
+                                        <button 
+                                            onClick={() => handleEliminar(p.idProducto)} 
+                                            style={{
+                                                backgroundColor: '#ef4444', // Rojo
+                                                color: 'white',
+                                                border: 'none',
+                                                padding: '6px 12px',
+                                                borderRadius: '5px',
+                                                cursor: 'pointer',
+                                                fontWeight: 'bold',
+                                                fontSize: '0.85rem'
+                                            }}
+                                        >
+                                            Borrar
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

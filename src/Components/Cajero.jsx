@@ -47,13 +47,16 @@ const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
 };
 
 // ==========================================
-// 2. POS INTERFACE (PUNTO DE VENTA) - MODIFICADO (Bs)
+// 2. POS INTERFACE (PUNTO DE VENTA) - CON NOMBRE CLIENTE
 // ==========================================
 const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
     const [pedidoActual, setPedidoActual] = useState([]);
     const [activeTab, setActiveTab] = useState('General');
     const [procesando, setProcesando] = useState(false);
     const [metodoPago, setMetodoPago] = useState('Efectivo');
+    
+    // 🔥 NUEVO ESTADO PARA EL NOMBRE
+    const [nombreCliente, setNombreCliente] = useState('');
 
     const categoriasBackend = [...new Set(products.map(p => p.categoria))];
     const tabs = ['General', ...categoriasBackend];
@@ -81,12 +84,17 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
 
     const registrarVenta = async (tipoPedido) => {
         if (pedidoActual.length === 0) return alert("Pedido vacío");
+        
+        // (Opcional) Validar que escriban nombre si es para llevar, por ejemplo
+        // if (tipoPedido === 'Llevar' && !nombreCliente) return alert("Escribe el nombre del cliente");
+
         setProcesando(true);
 
         const ventaDto = {
             Usuario: usuarioObj.usuario, 
             MetodoPago: metodoPago,
             TipoPedido: tipoPedido,
+            NombreCliente: nombreCliente, // 🔥 ENVIAMOS EL NOMBRE
             Productos: pedidoActual.map(p => ({
                 IdProducto: p.idProducto,
                 Cantidad: p.cantidad
@@ -95,10 +103,12 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
 
         try {
             const res = await api.post('/Ventas/registrar', ventaDto);
-            // CORRECCIÓN: Bs al final
-            alert(`✅ ¡Venta Registrada!\nTicket: ${res.data.ticket}\nPago: ${metodoPago}\nTotal: ${res.data.total.toFixed(2)} Bs`);
+            alert(`✅ ¡Venta Registrada!\nTicket: ${res.data.ticket}\nCliente: ${nombreCliente || 'General'}\nTotal: ${res.data.total.toFixed(2)} Bs`);
+            
+            // Limpiamos todo
             setPedidoActual([]); 
             setMetodoPago('Efectivo');
+            setNombreCliente(''); // Limpiamos el nombre
         } catch (error) {
             console.error(error);
             alert("❌ Error al registrar venta: " + (error.response?.data || error.message));
@@ -109,7 +119,6 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
 
     const total = pedidoActual.reduce((sum, item) => sum + (item.cantidad * item.precio), 0).toFixed(2);
     const filteredProducts = products.filter(p => activeTab === 'General' || p.categoria === activeTab);
-
     const opcionesPago = ['Efectivo', 'Tarjeta', 'QR'];
 
     return (
@@ -138,7 +147,6 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
                     {filteredProducts.map(p => (
                         <div key={p.idProducto} className={`product-card ${!p.disponible ? 'agotado' : ''}`} onClick={() => p.disponible && agregarApedido(p)}>
                             <span>{p.nombreProducto}</span>
-                            {/* CORRECCIÓN: Precio en la tarjeta */}
                             <div className="price">{p.precio.toFixed(2)} Bs</div>
                             {!p.disponible && <small style={{color:'red', fontWeight:'bold'}}>Agotado</small>}
                         </div>
@@ -148,6 +156,22 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
 
             <section className="pedido-section">
                 <div className="pedido-header">Ticket Actual</div>
+
+                {/* 🔥 INPUT PARA EL NOMBRE DEL CLIENTE 🔥 */}
+                <div style={{padding: '10px 15px', background: '#fff', borderBottom: '1px solid #eee'}}>
+                    <input 
+                        type="text" 
+                        placeholder="Nombre del Cliente (Opcional)" 
+                        value={nombreCliente}
+                        onChange={(e) => setNombreCliente(e.target.value)}
+                        style={{
+                            width: '100%', padding: '10px', borderRadius: '8px', 
+                            border: '1px solid #ccc', fontSize: '1rem', 
+                            background: '#f9f9f9'
+                        }}
+                    />
+                </div>
+
                 <div className="pedido-lista">
                     {pedidoActual.length === 0 ? (
                         <div style={{textAlign:'center', padding: '40px', color: '#9ca3af'}}>
@@ -159,11 +183,9 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
                             <div key={item.idProducto} className="pedido-item">
                                 <div className="pedido-item-info">
                                     <span className="pedido-item-name">{item.nombreProducto}</span>
-                                    {/* CORRECCIÓN: Precio unitario */}
                                     <span className="pedido-item-price">{item.precio} Bs x {item.cantidad}</span>
                                 </div>
                                 <div className="pedido-actions">
-                                    {/* CORRECCIÓN: Subtotal item */}
                                     <strong>{(item.cantidad * item.precio).toFixed(2)} Bs</strong>
                                     <span className="pedido-item-remove" onClick={() => removerDePedido(item.idProducto)}>×</span>
                                 </div>
@@ -190,7 +212,6 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
                     </div>
                 </div>
 
-                {/* CORRECCIÓN: Total general */}
                 <div className="total-display">Total: {total} Bs</div>
                 
                 <div className="action-buttons">

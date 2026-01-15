@@ -38,6 +38,20 @@ const OrderCard = ({ orden, moverOrden }) => {
                 <span className="orden-id">#{orden.numeroTicket}</span>
                 <span className="orden-timer">{orden.tipoPedido?.toUpperCase() || 'LOCAL'}</span>
             </div>
+            {/* 🔥 AQUÍ ES DONDE AGREGAMOS EL NOMBRE DEL CLIENTE 🔥 */}
+            {/* Si existe el nombre, lo mostramos en grande y negrita */}
+            {orden.nombreCliente && (
+                <div style={{
+                    padding: '0 10px', 
+                    fontWeight: '800', 
+                    color: '#1e293b', 
+                    fontSize: '1.2rem', 
+                    textTransform: 'uppercase',
+                    marginBottom: '5px'
+                }}>
+                    {orden.nombreCliente}
+                </div>
+            )}
             <ul className="orden-items">
                 {orden.productos.map((item, i) => (
                     <li key={i}><strong>{item.cantidad}x</strong> {item.producto}</li>
