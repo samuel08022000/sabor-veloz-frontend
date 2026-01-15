@@ -47,14 +47,14 @@ const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
 };
 
 // ==========================================
-// 2. POS INTERFACE (PUNTO DE VENTA)
+// 2. POS INTERFACE (PUNTO DE VENTA) - MODIFICADO (Bs)
 // ==========================================
 const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
     const [pedidoActual, setPedidoActual] = useState([]);
     const [activeTab, setActiveTab] = useState('General');
     const [procesando, setProcesando] = useState(false);
+    const [metodoPago, setMetodoPago] = useState('Efectivo');
 
-    // Filtra las categorías para los tabs
     const categoriasBackend = [...new Set(products.map(p => p.categoria))];
     const tabs = ['General', ...categoriasBackend];
 
@@ -79,13 +79,13 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
         }
     };
 
-    const registrarVenta = async (tipoPedido) => { // "Local" o "Llevar"
+    const registrarVenta = async (tipoPedido) => {
         if (pedidoActual.length === 0) return alert("Pedido vacío");
         setProcesando(true);
 
         const ventaDto = {
             Usuario: usuarioObj.usuario, 
-            MetodoPago: "Efectivo",
+            MetodoPago: metodoPago,
             TipoPedido: tipoPedido,
             Productos: pedidoActual.map(p => ({
                 IdProducto: p.idProducto,
@@ -95,9 +95,10 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
 
         try {
             const res = await api.post('/Ventas/registrar', ventaDto);
-            // Mostrar ticket o mensaje de éxito
-            alert(`✅ ¡Venta Registrada!\nTicket: ${res.data.ticket}\nTotal: $${res.data.total}`);
-            setPedidoActual([]); // Limpiar pedido
+            // CORRECCIÓN: Bs al final
+            alert(`✅ ¡Venta Registrada!\nTicket: ${res.data.ticket}\nPago: ${metodoPago}\nTotal: ${res.data.total.toFixed(2)} Bs`);
+            setPedidoActual([]); 
+            setMetodoPago('Efectivo');
         } catch (error) {
             console.error(error);
             alert("❌ Error al registrar venta: " + (error.response?.data || error.message));
@@ -109,10 +110,10 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
     const total = pedidoActual.reduce((sum, item) => sum + (item.cantidad * item.precio), 0).toFixed(2);
     const filteredProducts = products.filter(p => activeTab === 'General' || p.categoria === activeTab);
 
+    const opcionesPago = ['Efectivo', 'Tarjeta', 'QR'];
+
     return (
         <div className="cajero-layout animated-fade-in">
-            
-            {/* 🔥 BOTÓN PARA CERRAR TURNO (NUEVO) */}
             <button 
                 onClick={onCerrarTurno}
                 style={{
@@ -128,11 +129,7 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
             <section className="menu-section">
                 <div className="menu-tabs">
                     {tabs.map(tab => (
-                        <button 
-                            key={tab} 
-                            className={`tab-button ${activeTab === tab ? 'active' : ''}`} 
-                            onClick={() => setActiveTab(tab)}
-                        >
+                        <button key={tab} className={`tab-button ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
                             {tab}
                         </button>
                     ))}
@@ -141,7 +138,8 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
                     {filteredProducts.map(p => (
                         <div key={p.idProducto} className={`product-card ${!p.disponible ? 'agotado' : ''}`} onClick={() => p.disponible && agregarApedido(p)}>
                             <span>{p.nombreProducto}</span>
-                            <div className="price">${p.precio.toFixed(2)}</div>
+                            {/* CORRECCIÓN: Precio en la tarjeta */}
+                            <div className="price">{p.precio.toFixed(2)} Bs</div>
                             {!p.disponible && <small style={{color:'red', fontWeight:'bold'}}>Agotado</small>}
                         </div>
                     ))}
@@ -161,17 +159,40 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
                             <div key={item.idProducto} className="pedido-item">
                                 <div className="pedido-item-info">
                                     <span className="pedido-item-name">{item.nombreProducto}</span>
-                                    <span className="pedido-item-price">${item.precio} x {item.cantidad}</span>
+                                    {/* CORRECCIÓN: Precio unitario */}
+                                    <span className="pedido-item-price">{item.precio} Bs x {item.cantidad}</span>
                                 </div>
                                 <div className="pedido-actions">
-                                    <strong>${(item.cantidad * item.precio).toFixed(2)}</strong>
+                                    {/* CORRECCIÓN: Subtotal item */}
+                                    <strong>{(item.cantidad * item.precio).toFixed(2)} Bs</strong>
                                     <span className="pedido-item-remove" onClick={() => removerDePedido(item.idProducto)}>×</span>
                                 </div>
                             </div>
                         ))
                     )}
                 </div>
-                <div className="total-display">Total: ${total}</div>
+
+                <div className="pago-selector-container">
+                    <p style={{fontSize: '0.9rem', color: '#666', marginBottom: '5px'}}>Método de Pago:</p>
+                    <div className="pago-buttons">
+                        {opcionesPago.map(opcion => (
+                            <button
+                                key={opcion}
+                                className={`btn-pago ${metodoPago === opcion ? 'active' : ''}`}
+                                onClick={() => setMetodoPago(opcion)}
+                            >
+                                {opcion === 'Efectivo' && <i className="fas fa-money-bill-wave"></i>}
+                                {opcion === 'Tarjeta' && <i className="fas fa-credit-card"></i>}
+                                {opcion === 'QR' && <i className="fas fa-qrcode"></i>}
+                                <span>{opcion}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* CORRECCIÓN: Total general */}
+                <div className="total-display">Total: {total} Bs</div>
+                
                 <div className="action-buttons">
                     <button className="btn-registra" onClick={() => registrarVenta("Local")} disabled={procesando || pedidoActual.length === 0}>
                         <i className="fas fa-utensils"></i> COMER AQUÍ

@@ -923,3 +923,49 @@ button {
 .badge-pago.efectivo { background: #dbeafe; color: #1e40af; }
 .badge-pago.tarjeta { background: #ede9fe; color: #5b21b6; }
 .badge-pago.qr { background: #fce7f3; color: #9d174d; }
+/* --- ESTILOS SELECTOR DE PAGO --- */
+.pago-selector-container {
+    padding: 10px 15px;
+    background-color: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+}
+
+.pago-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.btn-pago {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border: 1px solid #d1d5db;
+    background-color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #4b5563;
+    font-size: 0.85rem;
+}
+
+.btn-pago i {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+}
+
+/* Estado Activo (Seleccionado) */
+.btn-pago.active {
+    background-color: #fef2f2; /* Un rojo muy suave */
+    border-color: #9e1b32; /* Tu color rojo corporativo */
+    color: #9e1b32;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(158, 27, 50, 0.15);
+}
+
+.btn-pago:hover:not(.active) {
+    background-color: #f3f4f6;
+}

@@ -108,7 +108,7 @@ const GestionProductos = () => {
                             <tr key={p.idProducto}>
                                 <td>#{p.idProducto}</td><td><strong>{p.nombreProducto}</strong></td>
                                 <td><span style={{padding:'4px 8px', background:'#e5e7eb', borderRadius:'4px', fontSize:'0.85rem'}}>{p.categoria}</span></td>
-                                <td style={{color: 'var(--primary)', fontWeight:'bold'}}>${p.precio.toFixed(2)}</td>
+                                <td style={{color: 'var(--primary)', fontWeight:'bold'}}>{p.precio.toFixed(2)} Bs</td>
                                 <td><span style={{color: p.disponible ? '#10b981' : '#ef4444', fontWeight: 'bold'}}>{p.disponible ? 'Activo' : 'Inactivo'}</span></td>
                                 <td>
                                     <button className="btn-secondary" onClick={() => iniciarEdicion(p)} style={{marginRight: '5px', color: '#3b82f6'}}><i className="fas fa-edit"></i></button>
@@ -124,7 +124,7 @@ const GestionProductos = () => {
 };
 
 // ==========================================
-// 2. SUB-VISTA: REPORTES FINANCIEROS
+// 2. SUB-VISTA: REPORTES FINANCIEROS (MODIFICADO Bs)
 // ==========================================
 const ReportesVentas = () => {
     const [data, setData] = useState(null);
@@ -155,23 +155,41 @@ const ReportesVentas = () => {
 
     return (
         <div id="reportes-view" className="sub-view animated-fade-in">
-            {/* --- HEADER --- */}
-            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', flexWrap: 'wrap', gap: '15px'}}>
                 <h2 style={{color: 'var(--primary)', fontSize: '2.5rem', margin: 0}}>DASHBOARD FINANCIERO</h2> 
-                <button className="btn-secondary" onClick={() => handleExportar('diario')}>
-                    <i className="fas fa-file-excel" style={{marginRight: '8px', color: '#10b981'}}></i> Reporte Diario
-                </button>
+                <div style={{display: 'flex', gap: '10px'}}>
+                    <button className="btn-secondary" onClick={() => handleExportar('diario')} title="Descargar Diario">
+                        <i className="fas fa-file-excel" style={{marginRight: '8px', color: '#10b981'}}></i> Diario
+                    </button>
+                    <button className="btn-secondary" onClick={() => handleExportar('semanal')} title="Descargar Semanal">
+                        <i className="fas fa-calendar-week" style={{marginRight: '8px', color: '#3b82f6'}}></i> Semanal
+                    </button>
+                    <button className="btn-secondary" onClick={() => handleExportar('mensual')} title="Descargar Mensual">
+                        <i className="fas fa-calendar-alt" style={{marginRight: '8px', color: '#8b5cf6'}}></i> Mensual
+                    </button>
+                </div>
             </div>
 
-            {/* --- KPIs --- */}
+            {/* --- KPIs con Bs al final --- */}
             <div className="kpi-grid">
-                <div className="kpi-card"><div className="kpi-icon icon-day"><i className="fas fa-coins"></i></div><div className="kpi-info"><span>Ingresos Hoy</span><strong>${metricas.ingresosHoy.toFixed(2)}</strong></div></div>
-                <div className="kpi-card"><div className="kpi-icon icon-week"><i className="fas fa-receipt"></i></div><div className="kpi-info"><span>Pedidos Hoy</span><strong>{metricas.pedidosHoy}</strong></div></div>
-                <div className="kpi-card"><div className="kpi-icon icon-month"><i className="fas fa-wallet"></i></div><div className="kpi-info"><span>Ticket Promedio</span><strong>${metricas.ticketPromedio.toFixed(2)}</strong></div></div>
-                <div className="kpi-card"><div className="kpi-icon icon-year"><i className="fas fa-chart-line"></i></div><div className="kpi-info"><span>Acumulado Mes</span><strong>${metricas.ingresosMes.toFixed(2)}</strong></div></div>
+                <div className="kpi-card">
+                    <div className="kpi-icon icon-day"><i className="fas fa-coins"></i></div>
+                    <div className="kpi-info"><span>Ingresos Hoy</span><strong>{metricas.ingresosHoy.toFixed(2)} Bs</strong></div>
+                </div>
+                <div className="kpi-card">
+                    <div className="kpi-icon icon-week"><i className="fas fa-receipt"></i></div>
+                    <div className="kpi-info"><span>Pedidos Hoy</span><strong>{metricas.pedidosHoy}</strong></div>
+                </div>
+                <div className="kpi-card">
+                    <div className="kpi-icon icon-month"><i className="fas fa-wallet"></i></div>
+                    <div className="kpi-info"><span>Ticket Promedio</span><strong>{metricas.ticketPromedio.toFixed(2)} Bs</strong></div>
+                </div>
+                <div className="kpi-card">
+                    <div className="kpi-icon icon-year"><i className="fas fa-chart-line"></i></div>
+                    <div className="kpi-info"><span>Acumulado Mes</span><strong>{metricas.ingresosMes.toFixed(2)} Bs</strong></div>
+                </div>
             </div>
 
-            {/* --- GRÁFICOS --- */}
             <div className="charts-grid">
                 <div className="chart-box">
                     <h3><i className="fas fa-crown" style={{color:'#fbbf24'}}></i> Top 5 Productos</h3>
@@ -197,10 +215,7 @@ const ReportesVentas = () => {
                 </div>
             </div>
 
-            {/* --- 🔥 LA TABLA QUE FALTABA 🔥 --- */}
             <div style={{marginTop: '40px', borderTop: '2px dashed #e5e7eb', paddingTop: '20px'}}>
-                
-                {/* TITULO DE PRUEBA - SI NO VES ESTO, NO SE ACTUALIZÓ EL ARCHIVO */}
                 <h3 style={{fontFamily: 'var(--font-brand)', fontSize: '2rem', color: 'var(--primary)'}}>
                     <i className="fas fa-list-alt"></i> ESTADO DE PEDIDOS RECIENTES
                 </h3>
@@ -217,14 +232,14 @@ const ReportesVentas = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {/* Si listaVentas viene nula, mostramos mensaje amigable */}
                             {listaVentas && listaVentas.length > 0 ? (
                                 listaVentas.map((venta, index) => (
                                     <tr key={index} style={{borderBottom: '1px solid #f1f5f9'}}>
                                         <td style={{padding: '15px', fontSize:'1.1rem'}}>{venta.fecha}</td>
                                         <td>{venta.cajero}</td>
                                         <td><span className="badge-pago" style={{background:'#e0f2fe', color:'#0369a1'}}>{venta.metodoPago}</span></td>
-                                        <td style={{fontWeight:'bold'}}>${venta.total.toFixed(2)}</td>
+                                        {/* CORRECCIÓN: Total con Bs al final */}
+                                        <td style={{fontWeight:'bold'}}>{venta.total.toFixed(2)} Bs</td>
                                         <td>
                                             <span style={{
                                                 padding: '5px 10px', borderRadius: '15px', fontWeight: 'bold', fontSize: '0.85rem',
@@ -245,7 +260,6 @@ const ReportesVentas = () => {
                                     <td colSpan="5" style={{textAlign:'center', padding:'40px', color: '#9ca3af'}}>
                                         <i className="fas fa-inbox" style={{fontSize:'2rem', display:'block', marginBottom:'10px'}}></i>
                                         No se encontraron pedidos recientes.
-                                        <br/><small>(Revisa que el backend esté enviando 'listaVentas')</small>
                                     </td>
                                 </tr>
                             )}
