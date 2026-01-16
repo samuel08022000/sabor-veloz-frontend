@@ -1,10 +1,11 @@
 import axios from 'axios';
 
-// Esto es lo que hace la magia:
-// Dice: "Si existe una variable de entorno en la nube, úsala. Si no, usa localhost."
-const BASE_URL = import.meta.env.VITE_API_URL || 'https://localhost:7069/api';
+// Detectamos si estamos en Railway o local
+// OJO: Si en Railway la variable VITE_API_URL no tiene "/api" al final, aquí se lo agregamos por seguridad.
+const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7069';
+const BASE_URL = apiUrl.endsWith('/api') ? apiUrl : `${apiUrl}/api`;
 
 export default axios.create({
     baseURL: BASE_URL,
-    withCredentials: true 
+    withCredentials: true // 👈 ESTO ES OBLIGATORIO, NO LO BORRES
 });
