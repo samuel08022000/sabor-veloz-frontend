@@ -282,30 +282,42 @@ export const Cajero = ({ onLogout, user }) => {
             setLoading(false);
         }
     };
+// 🔥 NUEVA LÓGICA: CERRAR TURNO CON MONTO
+const handleCerrarTurno = async () => {
+    // 1. Preguntamos confirmación inicial
+    if (!window.confirm("¿Seguro que deseas CERRAR EL TURNO?")) return;
 
-    // 🔥 NUEVA LÓGICA: CERRAR TURNO
-    const handleCerrarTurno = async () => {
-        if (!window.confirm("¿Seguro que deseas CERRAR EL TURNO? Se generará el corte de caja.")) return;
+    // 2. Pedimos el monto al usuario
+    const montoInput = prompt("💰 Ingresa el MONTO TOTAL (Efectivo) en caja para el cierre:", "0.00");
 
-        setLoading(true);
-        try {
-            // Llamamos al backend para poner FechaCierre
-            await api.post('/Caja/cerrar', {
-                IdUsuario: user.idUsuario,
-                MontoCierreCalculado: 0 // (Opcional) El backend debería calcular el real
-            });
-            alert("✅ Turno cerrado correctamente.");
-            
-            // Reseteamos estados para volver a la pantalla de apertura
-            setCajaAbierta(false);
-            setProducts([]);
-        } catch (error) {
-            console.error(error);
-            alert("Error al cerrar turno: " + (error.response?.data?.message || error.message));
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Si cancela el prompt, no hacemos nada
+    if (montoInput === null) return;
+    
+    // Validamos que sea número
+    const montoFinal = parseFloat(montoInput);
+    if (isNaN(montoFinal) || montoFinal < 0) {
+        return alert("❌ Error: Debes ingresar un monto válido.");
+    }
+
+    setLoading(true);
+    try {
+        // 3. Enviamos el monto real al backend
+        await api.post('/Caja/cerrar', {
+            IdUsuario: user.idUsuario,
+            MontoCierreCalculado: montoFinal 
+        });
+        alert(`✅ Turno cerrado correctamente.\nMonto registrado: ${montoFinal.toFixed(2)} Bs`);
+        
+        // Reseteamos estados
+        setCajaAbierta(false);
+        setProducts([]);
+    } catch (error) {
+        console.error(error);
+        alert("Error al cerrar turno: " + (error.response?.data?.message || error.message));
+    } finally {
+        setLoading(false);
+    }
+};
 
     return (
         <div id="cajero-view" className="view">
