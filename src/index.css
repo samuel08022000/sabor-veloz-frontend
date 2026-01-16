@@ -969,3 +969,64 @@ button {
 .btn-pago:hover:not(.active) {
     background-color: #f3f4f6;
 }
+/* --- RESPONSIVIDAD (MÓVIL Y TABLET) --- */
+
+@media (max-width: 1024px) {
+  /* Ajuste para Tablets (iPad en horizontal/vertical) */
+  .cajero-layout {
+    grid-template-columns: 1fr 320px; /* Reducir un poco el ticket */
+    padding: 1rem;
+    gap: 1rem;
+  }
+  
+  .ordenes-layout {
+    grid-template-columns: repeat(2, 1fr); /* Cocina: Bajar a 2 columnas */
+  }
+}
+
+@media (max-width: 768px) {
+  /* Ajuste para Celulares */
+  
+  /* 1. Header: Apilar elementos */
+  .dashboard-header {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+  
+  .logo-text { font-size: 1.5rem; }
+
+  /* 2. Cajero: Cambiar a una sola columna (Ticket debajo o flotante) */
+  .cajero-layout {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    padding: 10px;
+  }
+  
+  .pedido-section {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 35vh; /* Ocupa el 35% inferior de la pantalla */
+    z-index: 100;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+  }
+  
+  .menu-section {
+    margin-bottom: 36vh; /* Espacio para que el ticket no tape los productos */
+  }
+
+  /* 3. Cocina (KDS): Una sola columna vertical */
+  .ordenes-layout {
+    grid-template-columns: 1fr; 
+    height: auto;
+  }
+  
+  .ordenes-col {
+    margin-bottom: 20px;
+    height: 500px; /* Altura fija con scroll */
+  }
+}
