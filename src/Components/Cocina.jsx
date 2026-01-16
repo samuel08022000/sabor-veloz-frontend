@@ -15,7 +15,7 @@ const getClaseEstado = (estado) => {
 const OrderCard = ({ orden, moverOrden }) => {
     let buttonHTML = null;
     const claseCss = getClaseEstado(orden.estado);
-    
+
     if (claseCss === 'pendiente') {
         buttonHTML = (
             <button className="btn-accion-cocina btn-iniciar" onClick={() => moverOrden(orden.idComanda, 'En Preparación')}>
@@ -42,10 +42,10 @@ const OrderCard = ({ orden, moverOrden }) => {
             {/* Si existe el nombre, lo mostramos en grande y negrita */}
             {orden.nombreCliente && (
                 <div style={{
-                    padding: '0 10px', 
-                    fontWeight: '800', 
-                    color: '#1e293b', 
-                    fontSize: '1.2rem', 
+                    padding: '0 10px',
+                    fontWeight: '800',
+                    color: '#1e293b',
+                    fontSize: '1.2rem',
                     textTransform: 'uppercase',
                     marginBottom: '5px'
                 }}>
@@ -58,7 +58,14 @@ const OrderCard = ({ orden, moverOrden }) => {
                 ))}
             </ul>
             <div className="orden-footer">
-                <span className="orden-pago">{new Date(orden.fechaEnvio).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                {/* 🔴 CAMBIO: Forzar zona horaria de Bolivia */}
+                <span className="orden-pago">
+                    {new Date(orden.fechaEnvio).toLocaleTimeString('es-BO', {
+                        timeZone: 'America/La_Paz',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })}
+                </span>
                 {buttonHTML}
             </div>
         </div>
@@ -109,7 +116,7 @@ export const Cocina = ({ onLogout, userName }) => {
     return (
         <div id="cocina-view" className="view">
             <Header title="KDS COCINA" role="COCINA" userName={userName} onLogout={onLogout} />
-            
+
             <div className="ordenes-layout">
                 {/* Columna 1: Pendientes */}
                 <div className="ordenes-col col-pendiente">
