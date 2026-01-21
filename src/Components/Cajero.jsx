@@ -3,7 +3,7 @@ import { Header } from './Layouts';
 import api from '../api/axios';
 
 // ==========================================
-// 1. COMPONENTE APERTURA DE CAJA
+// 1. COMPONENTE APERTURA DE CAJA (OBLIGATORIO)
 // ==========================================
 const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
     const [montoInicial, setMontoInicial] = useState('');
@@ -18,26 +18,29 @@ const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
         <div className="apertura-caja-container animated-fade-in">
             <div className="apertura-caja-card">
                 <div className="icon-container">
-                    <i className="fas fa-cash-register" style={{fontSize: '2.5rem', color: '#9e1b32'}}></i>
+                    <i className="fas fa-cash-register" style={{fontSize: '3rem', color: '#9e1b32', marginBottom:'20px'}}></i>
                 </div>
-                <h2>APERTURA DE TURNO</h2>
+                <h2 style={{color:'#333', marginBottom:'10px'}}>APERTURA DE TURNO</h2>
+                <p style={{color:'#666', marginBottom:'20px'}}>Debes abrir caja para comenzar a vender.</p>
+                
                 <form onSubmit={handleSubmit}>
-                    <div className="caja-input-group">
-                        <label>Cajero Responsable</label>
-                        <input type="text" value={userName} readOnly />
+                    <div className="caja-input-group" style={{textAlign:'left', marginBottom:'15px'}}>
+                        <label style={{fontWeight:'bold', display:'block', marginBottom:'5px'}}>Cajero Responsable</label>
+                        <input type="text" value={userName} readOnly style={{width:'100%', padding:'10px', background:'#eee', border:'1px solid #ccc', borderRadius:'5px'}} />
                     </div>
-                    <div className="caja-input-group">
-                        <label>Monto Inicial (Efectivo)</label>
+                    <div className="caja-input-group" style={{textAlign:'left', marginBottom:'20px'}}>
+                        <label style={{fontWeight:'bold', display:'block', marginBottom:'5px'}}>Monto Inicial (Efectivo)</label>
                         <input 
                             type="number" 
                             value={montoInicial} 
                             onChange={(e) => setMontoInicial(e.target.value)}
                             step="0.01"
-                            placeholder="0.00"
+                            placeholder="0.00 Bs"
                             required 
+                            style={{width:'100%', padding:'10px', fontSize:'1.2rem', border:'1px solid #9e1b32', borderRadius:'5px'}}
                         />
                     </div>
-                    <button type="submit" className="btn-primary" disabled={loading}>
+                    <button type="submit" className="btn-primary" disabled={loading} style={{width:'100%', padding:'15px', fontSize:'1.1rem'}}>
                         {loading ? 'ABRIENDO...' : 'INICIAR TURNO'}
                     </button>
                 </form>
@@ -47,19 +50,41 @@ const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
 };
 
 // ==========================================
-// 2. POS INTERFACE (PUNTO DE VENTA) - CON NOMBRE CLIENTE
+// 2. POS INTERFACE
 // ==========================================
-const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
+const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const [pedidoActual, setPedidoActual] = useState([]);
-    const [activeTab, setActiveTab] = useState('General');
+    const [activeTab, setActiveTab] = useState('Hamburguesas');
     const [procesando, setProcesando] = useState(false);
     const [metodoPago, setMetodoPago] = useState('Efectivo');
-    
-    // 🔥 NUEVO ESTADO PARA EL NOMBRE
     const [nombreCliente, setNombreCliente] = useState('');
 
-    const categoriasBackend = [...new Set(products.map(p => p.categoria))];
-    const tabs = ['General', ...categoriasBackend];
+    const tabs = ['Hamburguesas', 'Pollos', 'Pipocas', 'Salchipapas', 'Bebidas', 'Otros'];
+
+    const getFilteredProducts = () => {
+        return products.filter(p => {
+            const nombre = p.nombreProducto.toLowerCase();
+            const catDB = p.categoria.toLowerCase();
+
+            if (activeTab === 'Hamburguesas') return nombre.includes('hamburguesa') || catDB.includes('hamburguesa');
+            if (activeTab === 'Pollos') return nombre.includes('pollo') || nombre.includes('broaster') || catDB.includes('pollo');
+            if (activeTab === 'Pipocas') return nombre.includes('pipoca');
+            if (activeTab === 'Salchipapas') return nombre.includes('salchipapa');
+            if (activeTab === 'Bebidas') return catDB === 'bebidas' || nombre.includes('coca') || nombre.includes('fanta') || nombre.includes('jugo');
+            
+            if (activeTab === 'Otros') {
+                const esHamburguesa = nombre.includes('hamburguesa') || catDB.includes('hamburguesa');
+                const esPollo = nombre.includes('pollo') || nombre.includes('broaster');
+                const esPipoca = nombre.includes('pipoca');
+                const esSalchi = nombre.includes('salchipapa');
+                const esBebida = catDB === 'bebidas' || nombre.includes('coca');
+                return !esHamburguesa && !esPollo && !esPipoca && !esSalchi && !esBebida;
+            }
+            return true;
+        });
+    };
+
+    const filteredProducts = getFilteredProducts();
 
     const agregarApedido = (producto) => {
         const existingItemIndex = pedidoActual.findIndex(item => item.idProducto === producto.idProducto);
@@ -84,17 +109,13 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
 
     const registrarVenta = async (tipoPedido) => {
         if (pedidoActual.length === 0) return alert("Pedido vacío");
-        
-        // (Opcional) Validar que escriban nombre si es para llevar, por ejemplo
-        // if (tipoPedido === 'Llevar' && !nombreCliente) return alert("Escribe el nombre del cliente");
-
         setProcesando(true);
 
         const ventaDto = {
             Usuario: usuarioObj.usuario, 
             MetodoPago: metodoPago,
             TipoPedido: tipoPedido,
-            NombreCliente: nombreCliente, // 🔥 ENVIAMOS EL NOMBRE
+            NombreCliente: nombreCliente,
             Productos: pedidoActual.map(p => ({
                 IdProducto: p.idProducto,
                 Cantidad: p.cantidad
@@ -103,39 +124,37 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
 
         try {
             const res = await api.post('/Ventas/registrar', ventaDto);
-            alert(`✅ ¡Venta Registrada!\nTicket: ${res.data.ticket}\nCliente: ${nombreCliente || 'General'}\nTotal: ${res.data.total.toFixed(2)} Bs`);
-            
-            // Limpiamos todo
+            alert(`✅ ¡Venta Registrada!\nTicket: ${res.data.ticket}\nTotal: ${res.data.total.toFixed(2)} Bs`);
             setPedidoActual([]); 
             setMetodoPago('Efectivo');
-            setNombreCliente(''); // Limpiamos el nombre
+            setNombreCliente('');
         } catch (error) {
             console.error(error);
-            alert("❌ Error al registrar venta: " + (error.response?.data || error.message));
+            alert("❌ Error: " + (error.response?.data || error.message));
         } finally {
             setProcesando(false);
         }
     };
 
     const total = pedidoActual.reduce((sum, item) => sum + (item.cantidad * item.precio), 0).toFixed(2);
-    const filteredProducts = products.filter(p => activeTab === 'General' || p.categoria === activeTab);
     const opcionesPago = ['Efectivo', 'Tarjeta', 'QR'];
 
     return (
         <div className="cajero-layout animated-fade-in">
+            {/* BOTÓN FLOTANTE CERRAR TURNO */}
             <button 
                 onClick={onCerrarTurno}
                 style={{
                     position: 'fixed', bottom: '20px', left: '20px', 
-                    background: '#7f1d1d', color: 'white', border: 'none', 
-                    padding: '12px 25px', borderRadius: '30px', fontWeight: 'bold', 
-                    cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.3)', zIndex: 100,
-                    display: 'flex', alignItems: 'center', gap: '8px'
+                    background: '#333', color: 'white', border: 'none', 
+                    padding: '10px 20px', borderRadius: '30px', fontWeight: 'bold', 
+                    cursor: 'pointer', zIndex: 100
                 }}>
-                <i className="fas fa-door-closed"></i> CERRAR TURNO
+                <i className="fas fa-lock"></i> CERRAR TURNO
             </button>
 
             <section className="menu-section">
+                <h2 style={{color:'#9e1b32', marginBottom:'15px'}}>MENÚ</h2>
                 <div className="menu-tabs">
                     {tabs.map(tab => (
                         <button key={tab} className={`tab-button ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
@@ -143,6 +162,7 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
                         </button>
                     ))}
                 </div>
+                
                 <div className="product-grid">
                     {filteredProducts.map(p => (
                         <div key={p.idProducto} className={`product-card ${!p.disponible ? 'agotado' : ''}`} onClick={() => p.disponible && agregarApedido(p)}>
@@ -155,19 +175,17 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
             </section>
 
             <section className="pedido-section">
-                <div className="pedido-header">Ticket Actual</div>
+                <div className="pedido-header">Pedido Actual</div>
 
-                {/* 🔥 INPUT PARA EL NOMBRE DEL CLIENTE 🔥 */}
-                <div style={{padding: '10px 15px', background: '#fff', borderBottom: '1px solid #eee'}}>
+                <div style={{padding: '15px', background: '#fff', borderBottom: '1px solid #eee'}}>
                     <input 
                         type="text" 
-                        placeholder="Nombre del Cliente (Opcional)" 
+                        placeholder="Nombre del Cliente..." 
                         value={nombreCliente}
                         onChange={(e) => setNombreCliente(e.target.value)}
                         style={{
-                            width: '100%', padding: '10px', borderRadius: '8px', 
-                            border: '1px solid #ccc', fontSize: '1rem', 
-                            background: '#f9f9f9'
+                            width: '100%', padding: '12px', borderRadius: '8px', 
+                            border: '1px solid #ccc', fontSize: '1rem', background: '#f9f9f9'
                         }}
                     />
                 </div>
@@ -175,51 +193,52 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
                 <div className="pedido-lista">
                     {pedidoActual.length === 0 ? (
                         <div style={{textAlign:'center', padding: '40px', color: '#9ca3af'}}>
-                            <i className="fas fa-shopping-basket" style={{fontSize: '2rem', marginBottom:'10px'}}></i>
-                            <p>Agrega productos...</p>
+                            <p>Selecciona productos...</p>
                         </div>
                     ) : (
                         pedidoActual.map((item) => (
                             <div key={item.idProducto} className="pedido-item">
                                 <div className="pedido-item-info">
                                     <span className="pedido-item-name">{item.nombreProducto}</span>
-                                    <span className="pedido-item-price">{item.precio} Bs x {item.cantidad}</span>
+                                    <small>{item.precio} x {item.cantidad}</small>
                                 </div>
-                                <div className="pedido-actions">
-                                    <strong>{(item.cantidad * item.precio).toFixed(2)} Bs</strong>
-                                    <span className="pedido-item-remove" onClick={() => removerDePedido(item.idProducto)}>×</span>
+                                <div className="pedido-actions" style={{display:'flex', gap:'10px', alignItems:'center'}}>
+                                    <strong>{(item.cantidad * item.precio).toFixed(2)}</strong>
+                                    <button onClick={() => removerDePedido(item.idProducto)} style={{background:'#fee2e2', color:'#ef4444', border:'none', borderRadius:'50%', width:'25px', height:'25px', cursor:'pointer'}}>×</button>
                                 </div>
                             </div>
                         ))
                     )}
                 </div>
 
-                <div className="pago-selector-container">
-                    <p style={{fontSize: '0.9rem', color: '#666', marginBottom: '5px'}}>Método de Pago:</p>
-                    <div className="pago-buttons">
+                <div className="pago-selector-container" style={{padding:'10px'}}>
+                    <div className="pago-buttons" style={{display:'flex', gap:'5px'}}>
                         {opcionesPago.map(opcion => (
                             <button
                                 key={opcion}
-                                className={`btn-pago ${metodoPago === opcion ? 'active' : ''}`}
                                 onClick={() => setMetodoPago(opcion)}
+                                style={{
+                                    flex:1, padding:'10px', border:'1px solid #ddd', 
+                                    borderRadius:'5px', background: metodoPago===opcion ? '#333':'white',
+                                    color: metodoPago===opcion ? 'white':'#333', cursor:'pointer'
+                                }}
                             >
-                                {opcion === 'Efectivo' && <i className="fas fa-money-bill-wave"></i>}
-                                {opcion === 'Tarjeta' && <i className="fas fa-credit-card"></i>}
-                                {opcion === 'QR' && <i className="fas fa-qrcode"></i>}
-                                <span>{opcion}</span>
+                                {opcion}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                <div className="total-display">Total: {total} Bs</div>
+                <div className="total-display">
+                    Total: {total} Bs
+                </div>
                 
-                <div className="action-buttons">
-                    <button className="btn-registra" onClick={() => registrarVenta("Local")} disabled={procesando || pedidoActual.length === 0}>
-                        <i className="fas fa-utensils"></i> COMER AQUÍ
+                <div className="action-buttons" style={{padding:'15px', display:'flex', gap:'10px'}}>
+                    <button className="btn-registra" style={{flex:1, padding:'15px', background:'#9e1b32', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold'}} onClick={() => registrarVenta("Local")} disabled={procesando || pedidoActual.length === 0}>
+                        COMER AQUÍ
                     </button>
-                    <button className="btn-cocina" onClick={() => registrarVenta("Llevar")} disabled={procesando || pedidoActual.length === 0}>
-                        <i className="fas fa-shopping-bag"></i> LLEVAR
+                    <button className="btn-cocina" style={{flex:1, padding:'15px', background:'#f59e0b', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold'}} onClick={() => registrarVenta("Llevar")} disabled={procesando || pedidoActual.length === 0}>
+                        LLEVAR
                     </button>
                 </div>
             </section>
@@ -228,17 +247,40 @@ const POSInterface = ({ products, onLogout, usuarioObj, onCerrarTurno }) => {
 };
 
 // ==========================================
-// 3. COMPONENTE PRINCIPAL (LÓGICA GENERAL)
+// 3. COMPONENTE PRINCIPAL Y LÓGICA DE SEGURIDAD
 // ==========================================
 export const Cajero = ({ onLogout, user }) => {
     const [cajaAbierta, setCajaAbierta] = useState(false);
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState([]);
     
-    // Al cargar, verificamos si ya hay caja abierta HOY
     useEffect(() => {
         verificarEstadoCaja();
     }, []);
+
+    // 🔒 1. SEGURIDAD: Prevenir cierre accidental de pestaña/navegador
+    useEffect(() => {
+        const protectWindow = (e) => {
+            if (cajaAbierta) {
+                // Esto activa la alerta nativa del navegador
+                e.preventDefault();
+                e.returnValue = "⚠️ Tienes un turno abierto. Debes cerrarlo antes de salir.";
+            }
+        };
+        window.addEventListener("beforeunload", protectWindow);
+        return () => window.removeEventListener("beforeunload", protectWindow);
+    }, [cajaAbierta]);
+
+    // 🔒 2. SEGURIDAD: Prevenir Logout manual desde la app
+    const handleLogoutSeguro = () => {
+        if (cajaAbierta) {
+            // Mostramos alerta bloqueante
+            alert("🛑 ¡ACCESO DENEGADO!\n\nNo puedes cerrar sesión mientras tengas el TURNO ABIERTO.\n\nPor favor, realiza el 'Cierre de Turno' primero para cuadrar la caja.");
+            return; // ⛔ Cancelamos la acción de salir
+        }
+        // Si no hay caja abierta, permitimos salir
+        onLogout();
+    };
 
     const verificarEstadoCaja = async () => {
         setLoading(true);
@@ -252,7 +294,7 @@ export const Cajero = ({ onLogout, user }) => {
             }
         } catch (error) {
             console.error("Error consultando caja", error);
-            setCajaAbierta(false); // Por seguridad, asumimos cerrada si falla
+            setCajaAbierta(false); 
         } finally {
             setLoading(false);
         }
@@ -282,60 +324,47 @@ export const Cajero = ({ onLogout, user }) => {
             setLoading(false);
         }
     };
-// 🔥 NUEVA LÓGICA: CERRAR TURNO CON MONTO
-const handleCerrarTurno = async () => {
-    // 1. Preguntamos confirmación inicial
-    if (!window.confirm("¿Seguro que deseas CERRAR EL TURNO?")) return;
 
-    // 2. Pedimos el monto al usuario
-    const montoInput = prompt("💰 Ingresa el MONTO TOTAL (Efectivo) en caja para el cierre:", "0.00");
-
-    // Si cancela el prompt, no hacemos nada
-    if (montoInput === null) return;
-    
-    // Validamos que sea número
-    const montoFinal = parseFloat(montoInput);
-    if (isNaN(montoFinal) || montoFinal < 0) {
-        return alert("❌ Error: Debes ingresar un monto válido.");
-    }
-
-    setLoading(true);
-    try {
-        // 3. Enviamos el monto real al backend
-        await api.post('/Caja/cerrar', {
-            IdUsuario: user.idUsuario,
-            MontoCierreCalculado: montoFinal 
-        });
-        alert(`✅ Turno cerrado correctamente.\nMonto registrado: ${montoFinal.toFixed(2)} Bs`);
+    const handleCerrarTurno = async () => {
+        if (!window.confirm("¿Seguro que deseas CERRAR EL TURNO?")) return;
+        const montoInput = prompt("💰 Ingresa el MONTO TOTAL (Efectivo) en caja:", "0.00");
+        if (montoInput === null) return;
         
-        // Reseteamos estados
-        setCajaAbierta(false);
-        setProducts([]);
-    } catch (error) {
-        console.error(error);
-        alert("Error al cerrar turno: " + (error.response?.data?.message || error.message));
-    } finally {
-        setLoading(false);
-    }
-};
+        const montoFinal = parseFloat(montoInput);
+        if (isNaN(montoFinal) || montoFinal < 0) return alert("❌ Monto inválido.");
+
+        setLoading(true);
+        try {
+            await api.post('/Caja/cerrar', {
+                IdUsuario: user.idUsuario,
+                MontoCierreCalculado: montoFinal 
+            });
+            alert(`✅ Turno cerrado correctamente. Ahora puedes cerrar sesión.`);
+            
+            // Forzamos recarga para limpiar todo estado
+            window.location.reload(); 
+        } catch (error) {
+            alert("Error al cerrar: " + (error.response?.data?.message || error.message));
+            setLoading(false);
+        }
+    };
 
     return (
-        <div id="cajero-view" className="view">
-            <Header title="SABOR VELOZ" role="CAJERO" userName={user.nombre} onLogout={onLogout} />
+        <div id="cajero-view" className="view" style={{paddingTop:'70px'}}>
+            {/* 🔥 USAMOS handleLogoutSeguro EN LUGAR DE onLogout */}
+            <Header title="SABOR VELOZ" role="CAJERO" userName={user.nombre} onLogout={handleLogoutSeguro} />
             
             {loading ? (
-                <div style={{height: '80vh', display:'flex', justifyContent:'center', alignItems:'center', flexDirection:'column', color:'var(--primary)'}}>
-                    <i className="fas fa-spinner fa-spin" style={{fontSize:'3rem', marginBottom:'20px'}}></i>
-                    <h3>Cargando sistema...</h3>
+                <div style={{height: '80vh', display:'flex', justifyContent:'center', alignItems:'center', flexDirection:'column'}}>
+                    <i className="fas fa-spinner fa-spin" style={{fontSize:'3rem', color:'#9e1b32'}}></i>
                 </div>
             ) : !cajaAbierta ? (
                 <AperturaCaja onAbrirCaja={handleAbrirCaja} userName={user.nombre} loading={loading} /> 
             ) : (
                 <POSInterface 
                     products={products} 
-                    onLogout={onLogout} 
                     usuarioObj={user} 
-                    onCerrarTurno={handleCerrarTurno} // Pasamos la función al hijo
+                    onCerrarTurno={handleCerrarTurno} 
                 />
             )}
         </div>
