@@ -50,7 +50,7 @@ const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
 };
 
 // ==========================================
-// 2. POS INTERFACE (CORREGIDO TABS Y ALTURA 30%)
+// 2. POS INTERFACE (CORREGIDO: BOTÓN EN SU LUGAR Y SCROLL INTERNO)
 // ==========================================
 const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const [pedidoActual, setPedidoActual] = useState([]);
@@ -147,6 +147,7 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
 
     // --- [ESTILOS DEFINITIVOS] ---
     
+    // Contenedor Principal (Fijo en Móvil, Normal en PC)
     const containerStyle = isMobile ? {
         position: 'fixed',
         top: '70px', 
@@ -159,19 +160,19 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
         zIndex: 900 
     } : {}; 
 
-    // Sección de Menú (AHORA OCUPA EL 70% aprox)
+    // Sección de Menú: En móvil usamos Flex Column y overflow HIDDEN en el padre
+    // para que el header y los tabs se queden quietos y solo los productos scrolleen.
     const menuSectionStyle = isMobile ? {
         flex: 1, 
-        overflowY: 'auto', 
-        overflowX: 'hidden',
+        overflow: 'hidden', // Importante: El contenedor no scrollea, solo la grilla adentro
         padding: '10px',
         display: 'flex',
         flexDirection: 'column'
     } : {}; 
 
-    // Sección de Ticket (REDUCIDA AL 30% DE ALTURA)
+    // Sección de Ticket (30% de altura en móvil)
     const pedidoSectionStyle = isMobile ? {
-        height: '30%', // <--- CAMBIO: Reducido de 40% a 30%
+        height: '30%', 
         flexShrink: 0,
         borderTop: '3px solid #9e1b32',
         background: 'white',
@@ -184,54 +185,49 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     return (
         <div className="cajero-layout animated-fade-in" style={containerStyle}>
             
-            {/* --- [SOLO MÓVIL] BARRA DE CERRAR TURNO --- */}
-            {isMobile && (
-                <div style={{
-                    flexShrink: 0, 
-                    background: '#2d3748', 
-                    padding: '8px 12px', 
-                    color: 'white',
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                }}>
-                    <span style={{fontSize:'0.85rem', color:'#cbd5e0'}}>
-                        <i className="fas fa-user-circle"></i> {usuarioObj.usuario}
-                    </span>
-                    <button 
-                        onClick={onCerrarTurno} 
-                        style={{
-                            background: '#e53e3e', color: 'white', border: 'none', 
-                            padding: '6px 12px', borderRadius: '4px', 
-                            fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer'
-                        }}
-                    >
-                        CERRAR TURNO <i className="fas fa-sign-out-alt"></i>
-                    </button>
-                </div>
-            )}
-
             {/* --- SECCIÓN 1: MENÚ DE PRODUCTOS --- */}
             <section className="menu-section" style={menuSectionStyle}>
                 
-                {/* TABS CON SCROLL HORIZONTAL FORZADO */}
+                {/* HEADER DEL MENÚ + BOTÓN CERRAR TURNO 
+                   (Ahora visible SIEMPRE, tanto en Móvil como en PC)
+                   En móvil le ponemos flex-shrink: 0 para que no desaparezca al hacer scroll
+                */}
+                <div style={{
+                    display:'flex', 
+                    justifyContent:'space-between', 
+                    alignItems:'center', 
+                    marginBottom:'10px', 
+                    flexShrink: 0 // <--- CLAVE PARA MOVIL
+                }}>
+                     <h2 style={{color:'#9e1b32', margin:0}}>MENÚ</h2>
+                     
+                     {/* BOTÓN RESTAURADO: Se muestra SIEMPRE */}
+                     <button onClick={onCerrarTurno} style={{
+                         background:'#333', color:'white', border:'none', 
+                         padding: isMobile ? '8px 12px' : '8px 15px', 
+                         borderRadius:'20px', fontSize:'0.8rem', cursor:'pointer'
+                     }}>
+                        <i className="fas fa-lock"></i> {isMobile ? 'Cerrar' : 'Cerrar Turno'}
+                    </button>
+                </div>
+
+                {/* TABS (Categorías) */}
                 <div className="menu-tabs" style={isMobile ? {
                     display:'flex', 
                     gap:'10px', 
-                    overflowX:'auto', // Scroll horizontal activado
+                    overflowX:'auto', 
                     paddingBottom:'8px', 
-                    flexShrink: 0,
-                    width: '100%',     // Ancho completo
-                    maxWidth: '100vw', // No exceder la pantalla
-                    whiteSpace: 'nowrap' // Evitar saltos de línea
+                    flexShrink: 0, // <--- No se aplasta
+                    width: '100%',     
+                    maxWidth: '100vw', 
+                    whiteSpace: 'nowrap'
                 } : {}}>
                     {tabs.map(tab => (
                         <button key={tab} 
                             onClick={() => setActiveTab(tab)}
                             className={`tab-button ${activeTab === tab ? 'active' : ''}`}
                             style={isMobile ? { 
-                                flex: '0 0 auto', // <--- CAMBIO CLAVE: No encoger, tomar tamaño natural
+                                flex: '0 0 auto', 
                                 padding: '8px 16px', 
                                 borderRadius: '20px', 
                                 background: activeTab===tab ? '#9e1b32':'white', 
@@ -245,13 +241,18 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                     ))}
                 </div>
                 
-                {/* GRILLA DE PRODUCTOS */}
+                {/* GRILLA DE PRODUCTOS (SCROLLABLE)
+                   Aquí es donde aplicamos el overflowY: auto solo para los productos
+                */}
                 <div className="product-grid" style={isMobile ? {
                     display: 'grid', 
                     gridTemplateColumns: 'repeat(2, 1fr)', 
                     gap: '10px', 
                     marginTop: '5px',
-                    paddingBottom: '20px'
+                    paddingBottom: '20px',
+                    overflowY: 'auto', // <--- EL SCROLL ESTÁ AQUÍ
+                    flex: 1,           // <--- Toma todo el espacio restante
+                    minHeight: 0       // <--- Truco para que flexbox respete el scroll
                 } : {}}>
                     {getFilteredProducts().map(p => (
                         <div key={p.idProducto} className={`product-card ${!p.disponible ? 'agotado' : ''}`} 
@@ -271,7 +272,7 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
             {/* --- SECCIÓN 2: TICKET (30% ALTURA) --- */}
             <section className="pedido-section" style={pedidoSectionStyle}>
                 
-                {/* Header Ticket (Muy compacto) */}
+                {/* Header Ticket */}
                 <div style={{padding: '5px 8px', background: '#fff', borderBottom: '1px solid #eee', flexShrink: 0}}>
                     {!isMobile && <div className="pedido-header">Ticket Actual</div>}
                     <input 
@@ -286,7 +287,7 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                     />
                 </div>
 
-                {/* LISTA DE ITEMS (Scroll propio si hay muchos items) */}
+                {/* Lista de Items */}
                 <div className="pedido-lista" style={isMobile ? {
                     flex: 1, overflowY: 'auto', padding: '5px', background: '#fff'
                 } : {}}>
@@ -310,7 +311,7 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                     )}
                 </div>
 
-                {/* BOTONES DE ACCIÓN (Compactos para caber en el 30%) */}
+                {/* Botones de Acción */}
                 <div className="pago-selector-container" style={{padding:'5px', background:'#f8f9fa', borderTop: '1px solid #ddd', flexShrink: 0}}>
                     
                     <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px'}}>
@@ -328,7 +329,6 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                                 </button>
                             ))}
                         </div>
-                        {/* Total */}
                         <span style={{fontWeight:'bold', fontSize:'1rem', color:'#9e1b32'}}>{total} Bs</span>
                     </div>
                 
