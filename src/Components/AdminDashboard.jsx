@@ -177,7 +177,7 @@ const ReportesVentas = () => {
     }, []);
 
     const handleExportar = (tipo) => {
-        const baseURL = "saborvelozweb-production.up.railway.app"; 
+        const baseURL = "https://saborvelozweb-production.up.railway.app"; 
     window.open(`${baseURL}/api/Reportes/exportar/${tipo}`, '_blank');
     };
 
