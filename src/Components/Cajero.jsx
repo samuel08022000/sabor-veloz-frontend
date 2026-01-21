@@ -314,12 +314,12 @@ export const Cajero = ({ onLogout, user }) => {
     };
 
     return (
-        /* 🔥 QUITAMOS EL PADDING TOP DE AQUÍ PARA MANEJARLO EN CSS 🔥 */
+        // Quitamos estilos inline para dejar que el CSS controle el scroll
         <div id="cajero-view" className="view">
             <Header title="SABOR VELOZ" role="CAJERO" userName={user.nombre} onLogout={handleLogoutSeguro} />
             
             {loading ? (
-                <div style={{height: '80vh', display:'flex', justifyContent:'center', alignItems:'center'}}>
+                <div style={{height: '80vh', display:'flex', justifyContent:'center', alignItems:'center', flexDirection:'column'}}>
                     <i className="fas fa-spinner fa-spin" style={{fontSize:'3rem', color:'#9e1b32'}}></i>
                 </div>
             ) : !cajaAbierta ? (
@@ -331,6 +331,9 @@ export const Cajero = ({ onLogout, user }) => {
                     onCerrarTurno={handleCerrarTurno} 
                 />
             )}
+            
+            {/* Este div vacío empuja el final de la página hacia abajo en móviles */}
+            <div className="mobile-footer-spacer" style={{height: '50px', width:'100%', clear:'both'}}></div>
         </div>
     );
 };
