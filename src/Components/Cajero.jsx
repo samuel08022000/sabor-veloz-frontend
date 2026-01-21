@@ -3,7 +3,7 @@ import { Header } from './Layouts';
 import api from '../api/axios';
 
 // ==========================================
-// 1. COMPONENTE APERTURA DE CAJA (OBLIGATORIO)
+// 1. COMPONENTE APERTURA DE CAJA (IGUAL)
 // ==========================================
 const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
     const [montoInicial, setMontoInicial] = useState('');
@@ -50,7 +50,7 @@ const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
 };
 
 // ==========================================
-// 2. POS INTERFACE (GRILLA 4 COLUMNAS + TABS)
+// 2. POS INTERFACE (MODIFICADO PARA SPLIT SCREEN)
 // ==========================================
 const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const [pedidoActual, setPedidoActual] = useState([]);
@@ -58,18 +58,6 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const [procesando, setProcesando] = useState(false);
     const [metodoPago, setMetodoPago] = useState('Efectivo');
     const [nombreCliente, setNombreCliente] = useState('');
-
-    // <--- [NUEVO INICIO] VARIABLES PARA LA VISTA MOVIL --->
-    const [activeMobileTab, setActiveMobileTab] = useState('menu'); // 'menu' o 'ticket'
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
-    // Detectar si cambia el tamaño de la pantalla (para activar/desactivar modo movil)
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth <= 768);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-    // <--- [NUEVO FIN] --->
 
     const tabs = ['Hamburguesas', 'Pollos', 'Pipocas', 'Salchipapas', 'Bebidas', 'Otros'];
 
@@ -138,8 +126,6 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
             setPedidoActual([]); 
             setMetodoPago('Efectivo');
             setNombreCliente('');
-            // <--- [NUEVO] OPCIONAL: Volver al menú después de cobrar en móvil
-            if(isMobile) setActiveMobileTab('menu');
         } catch (error) {
             console.error(error);
             alert("❌ Error: " + (error.response?.data || error.message));
@@ -149,179 +135,176 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     };
 
     const total = pedidoActual.reduce((sum, item) => sum + (item.cantidad * item.precio), 0).toFixed(2);
-    // Calcular cantidad total de items para el badge del botón (opcional)
-    const totalItems = pedidoActual.reduce((sum, item) => sum + item.cantidad, 0);
-
     const opcionesPago = ['Efectivo', 'Tarjeta', 'QR'];
 
     return (
-        // <--- [MODIFICADO] Agregué paddingBottom extra si es móvil para que no lo tape la barra --->
-        <div className="cajero-layout animated-fade-in" style={{ paddingBottom: isMobile ? '70px' : '0' }}>
+        // <--- CAMBIO CLAVE: Contenedor Principal (cajero-layout) --->
+        // Usamos 'flex-col' para celular y 'h-[calc(100vh-80px)]' para que ocupe EXACTAMENTE la pantalla disponible
+        // sin que el cuerpo de la página crezca.
+        <div className="cajero-layout animated-fade-in" style={{
+            display: 'flex',
+            flexDirection: window.innerWidth <= 768 ? 'column' : 'row', // Columna en celular, Fila en PC
+            height: 'calc(100vh - 80px)', // Restamos la altura del Header para que no haya scroll global
+            overflow: 'hidden' // Importante: Evita que toda la página haga scroll
+        }}>
             
-            {/* SECCIÓN IZQUIERDA: MENÚ */}
-            {/* <--- [MODIFICADO] Control de visibilidad para móvil (block/none) ---> */}
-            <section className="menu-section" style={{ display: (isMobile && activeMobileTab !== 'menu') ? 'none' : 'block' }}>
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
-                     <h2 style={{color:'#9e1b32', margin:0}}>MENÚ</h2>
-                     <button onClick={onCerrarTurno} style={{background:'#333', color:'white', border:'none', padding:'8px 15px', borderRadius:'20px', fontSize:'0.8rem', cursor:'pointer'}}>
-                        <i className="fas fa-lock"></i> Cerrar Turno
+            {/* --- SECCIÓN 1: MENÚ DE PRODUCTOS (ARRIBA) --- */}
+            <section className="menu-section" style={{
+                flex: window.innerWidth <= 768 ? '1.2' : '1', // En celular toma un poco más de la mitad
+                overflowY: 'auto', // <--- AQUÍ ESTÁ LA CLAVE: El scroll es INTERNO solo en los productos
+                padding: '10px',
+                background: '#f3f4f6',
+                minHeight: '0' // Necesario para que flexbox respete el scroll
+            }}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}>
+                     <h2 style={{color:'#9e1b32', margin:0, fontSize:'1.2rem'}}>MENÚ</h2>
+                     <button onClick={onCerrarTurno} style={{background:'#333', color:'white', border:'none', padding:'5px 10px', borderRadius:'15px', fontSize:'0.7rem'}}>
+                        <i className="fas fa-lock"></i> Cerrar
                     </button>
                 </div>
 
-                <div className="menu-tabs">
+                {/* Categorías (Tabs) */}
+                <div className="menu-tabs" style={{display:'flex', gap:'5px', overflowX:'auto', paddingBottom:'5px', marginBottom:'10px'}}>
                     {tabs.map(tab => (
-                        <button key={tab} className={`tab-button ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
+                        <button key={tab} 
+                            onClick={() => setActiveTab(tab)}
+                            style={{
+                                padding:'8px 12px', whiteSpace:'nowrap', border:'none', borderRadius:'20px',
+                                background: activeTab === tab ? '#9e1b32' : 'white',
+                                color: activeTab === tab ? 'white' : '#666',
+                                fontWeight: activeTab === tab ? 'bold' : 'normal',
+                                fontSize:'0.9rem', boxShadow:'0 2px 2px rgba(0,0,0,0.05)'
+                            }}
+                        >
                             {tab}
                         </button>
                     ))}
                 </div>
                 
-                <div className="product-grid">
+                {/* Grilla de Productos */}
+                <div className="product-grid" style={{
+                    display:'grid', 
+                    // En celular forzamos 2 columnas, en PC mantienes tus 3 o 4
+                    gridTemplateColumns: window.innerWidth <= 768 ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(140px, 1fr))', 
+                    gap:'10px'
+                }}>
                     {getFilteredProducts().map(p => (
-                        <div key={p.idProducto} className={`product-card ${!p.disponible ? 'agotado' : ''}`} onClick={() => p.disponible && agregarApedido(p)}>
-                            <span>{p.nombreProducto}</span>
-                            <div className="price">{p.precio.toFixed(2)} Bs</div>
+                        <div key={p.idProducto} className={`product-card ${!p.disponible ? 'agotado' : ''}`} 
+                             onClick={() => p.disponible && agregarApedido(p)}
+                             style={{
+                                 background:'white', padding:'10px', borderRadius:'8px', boxShadow:'0 2px 4px rgba(0,0,0,0.05)',
+                                 display:'flex', flexDirection:'column', justifyContent:'space-between', minHeight:'100px', cursor:'pointer'
+                             }}>
+                            <span style={{fontSize:'0.9rem', fontWeight:'600', lineHeight:'1.2'}}>{p.nombreProducto}</span>
+                            <div style={{marginTop:'5px', color:'#9e1b32', fontWeight:'bold'}}>{p.precio.toFixed(2)} Bs</div>
                             {!p.disponible && <small style={{color:'red', fontWeight:'bold'}}>Agotado</small>}
                         </div>
                     ))}
                 </div>
             </section>
 
-            {/* SECCIÓN DERECHA: TICKET */}
-            {/* <--- [MODIFICADO] Control de visibilidad para móvil (block/none) ---> */}
-            <section className="pedido-section" style={{ display: (isMobile && activeMobileTab !== 'ticket') ? 'none' : 'block' }}>
-                <div className="pedido-header">Ticket Actual</div>
-
-                <div style={{padding: '10px', background: '#fff', borderBottom: '1px solid #eee'}}>
+            {/* --- SECCIÓN 2: TICKET Y BOTONES (ABAJO) --- */}
+            <section className="pedido-section" style={{
+                // En celular: Altura fija o porcentaje (45%) para asegurar que los botones SIEMPRE se vean
+                height: window.innerWidth <= 768 ? '45%' : 'auto', 
+                width: window.innerWidth <= 768 ? '100%' : '350px',
+                borderTop: '2px solid #ddd',
+                background: 'white',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 -4px 10px rgba(0,0,0,0.1)',
+                zIndex: 10
+            }}>
+                {/* Cabecera del Ticket */}
+                <div style={{padding: '8px', background: '#fff', borderBottom: '1px solid #eee'}}>
+                    <div className="pedido-header" style={{fontSize:'1rem', fontWeight:'bold', color:'#333', marginBottom:'5px'}}>Ticket Actual</div>
                     <input 
                         type="text" 
-                        placeholder="Nombre del Cliente..." 
+                        placeholder="Nombre Cliente..." 
                         value={nombreCliente}
                         onChange={(e) => setNombreCliente(e.target.value)}
                         style={{
-                            width: '100%', padding: '10px', borderRadius: '8px', 
-                            border: '1px solid #ccc', fontSize: '1rem', background: '#f9f9f9'
+                            width: '100%', padding: '8px', borderRadius: '6px', 
+                            border: '1px solid #ccc', fontSize: '0.9rem', background: '#f9f9f9'
                         }}
                     />
                 </div>
 
-                <div className="pedido-lista">
+                {/* Lista de Items (Scrollable independientemente) */}
+                <div className="pedido-lista" style={{
+                    flex: 1, // Toma todo el espacio disponible entre el input y los botones
+                    overflowY: 'auto', 
+                    padding: '5px'
+                }}>
                     {pedidoActual.length === 0 ? (
-                        <div style={{textAlign:'center', padding: '40px', color: '#9ca3af'}}>
-                            <p>Selecciona productos...</p>
+                        <div style={{textAlign:'center', padding: '20px', color: '#ccc', fontSize:'0.9rem'}}>
+                            <p>Ticket Vacío</p>
                         </div>
                     ) : (
                         pedidoActual.map((item) => (
-                            <div key={item.idProducto} className="pedido-item">
-                                <div className="pedido-item-info">
-                                    <span className="pedido-item-name">{item.nombreProducto}</span>
-                                    <small>{item.precio} x {item.cantidad}</small>
+                            <div key={item.idProducto} className="pedido-item" style={{display:'flex', justifyContent:'space-between', padding:'8px', borderBottom:'1px solid #f0f0f0'}}>
+                                <div style={{flex:1}}>
+                                    <span style={{display:'block', fontSize:'0.9rem', fontWeight:'500'}}>{item.nombreProducto}</span>
+                                    <small style={{color:'#666'}}>{item.precio} x {item.cantidad}</small>
                                 </div>
-                                <div className="pedido-actions" style={{display:'flex', gap:'10px', alignItems:'center'}}>
-                                    <strong>{(item.cantidad * item.precio).toFixed(2)}</strong>
-                                    <button onClick={() => removerDePedido(item.idProducto)} style={{background:'#fee2e2', color:'#ef4444', border:'none', borderRadius:'50%', width:'25px', height:'25px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>×</button>
+                                <div style={{display:'flex', gap:'10px', alignItems:'center'}}>
+                                    <strong style={{fontSize:'0.9rem'}}>{(item.cantidad * item.precio).toFixed(2)}</strong>
+                                    <button onClick={() => removerDePedido(item.idProducto)} style={{background:'#fee2e2', color:'#ef4444', border:'none', borderRadius:'50%', width:'24px', height:'24px', cursor:'pointer'}}>×</button>
                                 </div>
                             </div>
                         ))
                     )}
                 </div>
 
-                <div className="pago-selector-container" style={{padding:'10px', background:'#f8f9fa'}}>
-                    <div className="pago-buttons" style={{display:'flex', gap:'5px'}}>
+                {/* --- ZONA FIJA DE PAGO (SIEMPRE VISIBLE) --- */}
+                <div style={{background:'#f8f9fa', padding:'10px', borderTop:'1px solid #ddd'}}>
+                    
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px', fontSize:'1.1rem', fontWeight:'bold'}}>
+                        <span>Total:</span>
+                        <span style={{color:'#9e1b32'}}>{total} Bs</span>
+                    </div>
+
+                    <div className="pago-buttons" style={{display:'flex', gap:'5px', marginBottom:'8px'}}>
                         {opcionesPago.map(opcion => (
-                            <button
-                                key={opcion}
-                                onClick={() => setMetodoPago(opcion)}
+                            <button key={opcion} onClick={() => setMetodoPago(opcion)}
                                 style={{
-                                    flex:1, padding:'8px', border:'1px solid #ddd', 
-                                    borderRadius:'5px', background: metodoPago===opcion ? '#333':'white',
-                                    color: metodoPago===opcion ? 'white':'#333', cursor:'pointer',
-                                    fontWeight: metodoPago===opcion ? 'bold':'normal'
-                                }}
-                            >
+                                    flex:1, padding:'6px', border:'1px solid #ccc', borderRadius:'4px', fontSize:'0.8rem',
+                                    background: metodoPago===opcion ? '#333':'white', color: metodoPago===opcion ? 'white':'#333'
+                                }}>
                                 {opcion}
                             </button>
                         ))}
                     </div>
-                </div>
-
-                <div className="total-display">
-                    Total: {total} Bs
-                </div>
                 
-                <div className="action-buttons" style={{padding:'10px', display:'flex', gap:'10px'}}>
-                    <button className="btn-registra" style={{flex:1, padding:'15px', background:'#9e1b32', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold', fontSize:'1rem'}} onClick={() => registrarVenta("Local")} disabled={procesando || pedidoActual.length === 0}>
-                        COMER AQUÍ
-                    </button>
-                    <button className="btn-cocina" style={{flex:1, padding:'15px', background:'#f59e0b', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold', fontSize:'1rem'}} onClick={() => registrarVenta("Llevar")} disabled={procesando || pedidoActual.length === 0}>
-                        LLEVAR
-                    </button>
+                    <div className="action-buttons" style={{display:'flex', gap:'8px'}}>
+                        <button style={{flex:1, padding:'12px', background:'#9e1b32', color:'white', border:'none', borderRadius:'6px', fontWeight:'bold', fontSize:'0.9rem', opacity: pedidoActual.length===0?0.6:1}} 
+                                onClick={() => registrarVenta("Local")} disabled={procesando || pedidoActual.length === 0}>
+                            COMER AQUÍ
+                        </button>
+                        <button style={{flex:1, padding:'12px', background:'#f59e0b', color:'white', border:'none', borderRadius:'6px', fontWeight:'bold', fontSize:'0.9rem', opacity: pedidoActual.length===0?0.6:1}} 
+                                onClick={() => registrarVenta("Llevar")} disabled={procesando || pedidoActual.length === 0}>
+                            LLEVAR
+                        </button>
+                    </div>
                 </div>
             </section>
-
-            {/* <--- [NUEVO] BARRA DE NAVEGACIÓN SOLO PARA MÓVIL ---> */}
-            {isMobile && (
-                <div style={{
-                    position: 'fixed', bottom: 0, left: 0, right: 0, 
-                    height: '60px', background: '#fff', borderTop: '1px solid #ccc',
-                    display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-                    boxShadow: '0 -2px 10px rgba(0,0,0,0.1)', zIndex: 999
-                }}>
-                    <button 
-                        onClick={() => setActiveMobileTab('menu')}
-                        style={{
-                            flex: 1, height: '100%', border: 'none', background: activeMobileTab === 'menu' ? '#fff0f0' : '#fff',
-                            color: activeMobileTab === 'menu' ? '#9e1b32' : '#666', fontWeight: 'bold', fontSize: '1rem'
-                        }}
-                    >
-                        <i className="fas fa-utensils"></i> MENÚ
-                    </button>
-                    <div style={{width: '1px', background: '#ccc', height: '60%'}}></div>
-                    <button 
-                        onClick={() => setActiveMobileTab('ticket')}
-                        style={{
-                            flex: 1, height: '100%', border: 'none', background: activeMobileTab === 'ticket' ? '#fff0f0' : '#fff',
-                            color: activeMobileTab === 'ticket' ? '#9e1b32' : '#666', fontWeight: 'bold', fontSize: '1rem',
-                            position: 'relative'
-                        }}
-                    >
-                        <i className="fas fa-receipt"></i> CUENTA
-                        {totalItems > 0 && (
-                            <span style={{
-                                position: 'absolute', top: '8px', right: '20%', 
-                                background: '#9e1b32', color: 'white', borderRadius: '50%', 
-                                width: '20px', height: '20px', fontSize: '0.8rem', 
-                                display: 'flex', alignItems: 'center', justifyContent: 'center'
-                            }}>
-                                {totalItems}
-                            </span>
-                        )}
-                    </button>
-                </div>
-            )}
         </div>
     );
 };
 
 // ==========================================
-// 3. COMPONENTE PRINCIPAL
+// 3. COMPONENTE PRINCIPAL (SIN CAMBIOS)
 // ==========================================
 export const Cajero = ({ onLogout, user }) => {
     const [cajaAbierta, setCajaAbierta] = useState(false);
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState([]);
     
-    useEffect(() => {
-        verificarEstadoCaja();
-    }, []);
+    useEffect(() => { verificarEstadoCaja(); }, []);
 
-    // SEGURIDAD: Prevenir cierre accidental
     useEffect(() => {
         const protectWindow = (e) => {
-            if (cajaAbierta) {
-                e.preventDefault();
-                e.returnValue = "Tienes un turno abierto.";
-            }
+            if (cajaAbierta) { e.preventDefault(); e.returnValue = "Tienes un turno abierto."; }
         };
         window.addEventListener("beforeunload", protectWindow);
         return () => window.removeEventListener("beforeunload", protectWindow);
@@ -329,7 +312,7 @@ export const Cajero = ({ onLogout, user }) => {
 
     const handleLogoutSeguro = () => {
         if (cajaAbierta) {
-            alert("🛑 ¡ACCESO DENEGADO!\n\nNo puedes cerrar sesión mientras tengas el TURNO ABIERTO.\n\nPor favor, realiza el 'Cierre de Turno' primero.");
+            alert("🛑 ¡ACCESO DENEGADO!\n\nNo puedes cerrar sesión mientras tengas el TURNO ABIERTO.");
             return;
         }
         onLogout();
@@ -339,69 +322,38 @@ export const Cajero = ({ onLogout, user }) => {
         setLoading(true);
         try {
             const res = await api.get('/Caja/estado');
-            if (res.data.abierta) {
-                setCajaAbierta(true);
-                loadProductos();
-            } else {
-                setCajaAbierta(false);
-            }
-        } catch (error) {
-            console.error(error);
-            setCajaAbierta(false); 
-        } finally {
-            setLoading(false);
-        }
+            if (res.data.abierta) { setCajaAbierta(true); loadProductos(); } else { setCajaAbierta(false); }
+        } catch (error) { console.error(error); setCajaAbierta(false); } finally { setLoading(false); }
     };
 
     const loadProductos = async () => {
-        try {
-            const res = await api.get('/Productos/lista');
-            setProducts(res.data);
-        } catch (error) {
-            console.error(error);
-        }
+        try { const res = await api.get('/Productos/lista'); setProducts(res.data); } catch (error) { console.error(error); }
     };
 
     const handleAbrirCaja = async (monto) => {
         setLoading(true);
         try {
-            await api.post('/Caja/abrir', {
-                IdUsuario: user.idUsuario,
-                MontoInicial: parseFloat(monto)
-            });
-            setCajaAbierta(true);
-            loadProductos();
-        } catch (error) {
-            alert("Error al abrir caja: " + (error.response?.data || error.message));
-        } finally {
-            setLoading(false);
-        }
+            await api.post('/Caja/abrir', { IdUsuario: user.idUsuario, MontoInicial: parseFloat(monto) });
+            setCajaAbierta(true); loadProductos();
+        } catch (error) { alert("Error: " + (error.response?.data || error.message)); } finally { setLoading(false); }
     };
 
     const handleCerrarTurno = async () => {
         if (!window.confirm("¿Seguro que deseas CERRAR EL TURNO?")) return;
         const montoInput = prompt("💰 Ingresa el MONTO TOTAL (Efectivo) en caja:", "0.00");
         if (montoInput === null) return;
-        
         const montoFinal = parseFloat(montoInput);
         if (isNaN(montoFinal) || montoFinal < 0) return alert("❌ Monto inválido.");
-
         setLoading(true);
         try {
-            await api.post('/Caja/cerrar', {
-                IdUsuario: user.idUsuario,
-                MontoCierreCalculado: montoFinal 
-            });
-            alert(`✅ Turno cerrado correctamente.`);
-            window.location.reload(); 
-        } catch (error) {
-            alert("Error al cerrar: " + (error.response?.data?.message || error.message));
-            setLoading(false);
-        }
+            await api.post('/Caja/cerrar', { IdUsuario: user.idUsuario, MontoCierreCalculado: montoFinal });
+            alert(`✅ Turno cerrado correctamente.`); window.location.reload(); 
+        } catch (error) { alert("Error: " + (error.response?.data?.message || error.message)); setLoading(false); }
     };
 
     return (
-        <div id="cajero-view" className="view" style={{paddingTop:'70px'}}>
+        // Forzamos que la vista principal no tenga scroll extra
+        <div id="cajero-view" className="view" style={{paddingTop:'70px', height: '100vh', overflow: 'hidden'}}>
             <Header title="SABOR VELOZ" role="CAJERO" userName={user.nombre} onLogout={handleLogoutSeguro} />
             
             {loading ? (
@@ -411,11 +363,7 @@ export const Cajero = ({ onLogout, user }) => {
             ) : !cajaAbierta ? (
                 <AperturaCaja onAbrirCaja={handleAbrirCaja} userName={user.nombre} loading={loading} /> 
             ) : (
-                <POSInterface 
-                    products={products} 
-                    usuarioObj={user} 
-                    onCerrarTurno={handleCerrarTurno} 
-                />
+                <POSInterface products={products} usuarioObj={user} onCerrarTurno={handleCerrarTurno} />
             )}
         </div>
     );
