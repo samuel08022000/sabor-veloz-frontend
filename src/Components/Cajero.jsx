@@ -3,7 +3,7 @@ import { Header } from './Layouts';
 import api from '../api/axios';
 
 // ==========================================
-// 1. COMPONENTE APERTURA DE CAJA (OBLIGATORIO)
+// 1. COMPONENTE APERTURA DE CAJA
 // ==========================================
 const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
     const [montoInicial, setMontoInicial] = useState('');
@@ -50,7 +50,7 @@ const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
 };
 
 // ==========================================
-// 2. POS INTERFACE (RESPONSIVE + TABS)
+// 2. POS INTERFACE (SIN ESTILOS INLINE CONFLICTIVOS)
 // ==========================================
 const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const [pedidoActual, setPedidoActual] = useState([]);
@@ -59,10 +59,8 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const [metodoPago, setMetodoPago] = useState('Efectivo');
     const [nombreCliente, setNombreCliente] = useState('');
 
-    // Pestañas definidas manualmente
     const tabs = ['Hamburguesas', 'Pollos', 'Pipocas', 'Salchipapas', 'Bebidas', 'Otros'];
 
-    // Lógica de filtrado inteligente
     const getFilteredProducts = () => {
         return products.filter(p => {
             const nombre = p.nombreProducto.toLowerCase();
@@ -143,12 +141,11 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
 
     return (
         <div className="cajero-layout animated-fade-in">
-            {/* MENÚ IZQUIERDO (O SUPERIOR EN MÓVIL) */}
+            {/* SECCIÓN MENÚ */}
             <section className="menu-section">
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
+                <div className="menu-header-mobile" style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
                      <h2 style={{color:'#9e1b32', margin:0}}>MENÚ</h2>
-                     {/* Botón Cerrar Turno visible en móvil dentro del menú */}
-                     <button className="btn-cerrar-turno-movil" onClick={onCerrarTurno} style={{background:'#333', color:'white', border:'none', padding:'8px 15px', borderRadius:'20px', fontSize:'0.8rem', cursor:'pointer'}}>
+                     <button onClick={onCerrarTurno} style={{background:'#333', color:'white', border:'none', padding:'8px 15px', borderRadius:'20px', fontSize:'0.8rem', cursor:'pointer'}}>
                         <i className="fas fa-lock"></i> Cerrar Turno
                     </button>
                 </div>
@@ -172,7 +169,7 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                 </div>
             </section>
 
-            {/* TICKET DERECHO (O INFERIOR EN MÓVIL) */}
+            {/* SECCIÓN TICKET */}
             <section className="pedido-section">
                 <div className="pedido-header">
                     <span>Pedido Actual</span>
@@ -185,10 +182,7 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                         placeholder="Nombre del Cliente..." 
                         value={nombreCliente}
                         onChange={(e) => setNombreCliente(e.target.value)}
-                        style={{
-                            width: '100%', padding: '10px', borderRadius: '8px', 
-                            border: '1px solid #ccc', fontSize: '1rem', background: '#f9f9f9'
-                        }}
+                        style={{width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #ccc', fontSize: '1rem', background: '#f9f9f9'}}
                     />
                 </div>
 
@@ -236,47 +230,44 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                     Total: {total} Bs
                 </div>
                 
-                <div className="action-buttons" style={{padding:'10px', display:'flex', gap:'10px'}}>
-                    <button className="btn-registra" style={{flex:1, padding:'15px', background:'#9e1b32', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold', fontSize:'1rem'}} onClick={() => registrarVenta("Local")} disabled={procesando || pedidoActual.length === 0}>
+                <div className="action-buttons">
+                    <button className="btn-registra" style={{background:'#9e1b32'}} onClick={() => registrarVenta("Local")} disabled={procesando || pedidoActual.length === 0}>
                         COMER AQUÍ
                     </button>
-                    <button className="btn-cocina" style={{flex:1, padding:'15px', background:'#f59e0b', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold', fontSize:'1rem'}} onClick={() => registrarVenta("Llevar")} disabled={procesando || pedidoActual.length === 0}>
+                    <button className="btn-cocina" style={{background:'#f59e0b'}} onClick={() => registrarVenta("Llevar")} disabled={procesando || pedidoActual.length === 0}>
                         LLEVAR
                     </button>
                 </div>
             </section>
+            
+            {/* 🔥 ESTE DIV ES EL SALVAVIDAS PARA EL SCROLL EN MÓVIL 🔥 */}
+            <div className="mobile-spacer"></div>
         </div>
     );
 };
 
 // ==========================================
-// 3. COMPONENTE PRINCIPAL CON SEGURIDAD
+// 3. COMPONENTE PRINCIPAL (SIN ESTILOS INLINE EN EL WRAPPER)
 // ==========================================
 export const Cajero = ({ onLogout, user }) => {
     const [cajaAbierta, setCajaAbierta] = useState(false);
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState([]);
     
-    useEffect(() => {
-        verificarEstadoCaja();
-    }, []);
+    useEffect(() => { verificarEstadoCaja(); }, []);
 
-    // 🔒 SEGURIDAD 1: Evitar cierre de pestaña/navegador
+    // Seguridad
     useEffect(() => {
         const protectWindow = (e) => {
-            if (cajaAbierta) {
-                e.preventDefault();
-                e.returnValue = "⚠️ Tienes un turno abierto. Debes cerrarlo antes de salir.";
-            }
+            if (cajaAbierta) { e.preventDefault(); e.returnValue = "Turno abierto"; }
         };
         window.addEventListener("beforeunload", protectWindow);
         return () => window.removeEventListener("beforeunload", protectWindow);
     }, [cajaAbierta]);
 
-    // 🔒 SEGURIDAD 2: Evitar Logout manual
     const handleLogoutSeguro = () => {
         if (cajaAbierta) {
-            alert("🛑 ¡ACCESO DENEGADO!\n\nNo puedes cerrar sesión mientras tengas el TURNO ABIERTO.\n\nPor favor, realiza el 'Cierre de Turno' primero.");
+            alert("🛑 ¡ACCESO DENEGADO!\nCierra el turno primero.");
             return;
         }
         onLogout();
@@ -289,70 +280,46 @@ export const Cajero = ({ onLogout, user }) => {
             if (res.data.abierta) {
                 setCajaAbierta(true);
                 loadProductos();
-            } else {
-                setCajaAbierta(false);
-            }
-        } catch (error) {
-            console.error("Error consultando caja", error);
-            setCajaAbierta(false); 
-        } finally {
-            setLoading(false);
-        }
+            } else setCajaAbierta(false);
+        } catch (error) { setCajaAbierta(false); } 
+        finally { setLoading(false); }
     };
 
     const loadProductos = async () => {
         try {
             const res = await api.get('/Productos/lista');
             setProducts(res.data);
-        } catch (error) {
-            console.error("Error cargando productos", error);
-        }
+        } catch (error) { console.error(error); }
     };
 
     const handleAbrirCaja = async (monto) => {
         setLoading(true);
         try {
-            await api.post('/Caja/abrir', {
-                IdUsuario: user.idUsuario,
-                MontoInicial: parseFloat(monto)
-            });
-            setCajaAbierta(true);
-            loadProductos();
-        } catch (error) {
-            alert("Error al abrir caja: " + (error.response?.data || error.message));
-        } finally {
-            setLoading(false);
-        }
+            await api.post('/Caja/abrir', { IdUsuario: user.idUsuario, MontoInicial: parseFloat(monto) });
+            setCajaAbierta(true); loadProductos();
+        } catch (error) { alert("Error: " + error.message); } 
+        finally { setLoading(false); }
     };
 
     const handleCerrarTurno = async () => {
-        if (!window.confirm("¿Seguro que deseas CERRAR EL TURNO?")) return;
-        const montoInput = prompt("💰 Ingresa el MONTO TOTAL (Efectivo) en caja:", "0.00");
-        if (montoInput === null) return;
-        
-        const montoFinal = parseFloat(montoInput);
-        if (isNaN(montoFinal) || montoFinal < 0) return alert("❌ Monto inválido.");
-
+        if (!window.confirm("¿Cerrar turno?")) return;
+        const monto = prompt("Monto final en caja:");
+        if (!monto) return;
         setLoading(true);
         try {
-            await api.post('/Caja/cerrar', {
-                IdUsuario: user.idUsuario,
-                MontoCierreCalculado: montoFinal 
-            });
-            alert(`✅ Turno cerrado correctamente.`);
+            await api.post('/Caja/cerrar', { IdUsuario: user.idUsuario, MontoCierreCalculado: parseFloat(monto) });
+            alert("Turno cerrado.");
             window.location.reload(); 
-        } catch (error) {
-            alert("Error al cerrar: " + (error.response?.data?.message || error.message));
-            setLoading(false);
-        }
+        } catch (error) { alert("Error: " + error.message); setLoading(false); }
     };
 
     return (
-        <div id="cajero-view" className="view" style={{paddingTop:'70px'}}>
+        /* 🔥 QUITAMOS EL PADDING TOP DE AQUÍ PARA MANEJARLO EN CSS 🔥 */
+        <div id="cajero-view" className="view">
             <Header title="SABOR VELOZ" role="CAJERO" userName={user.nombre} onLogout={handleLogoutSeguro} />
             
             {loading ? (
-                <div style={{height: '80vh', display:'flex', justifyContent:'center', alignItems:'center', flexDirection:'column'}}>
+                <div style={{height: '80vh', display:'flex', justifyContent:'center', alignItems:'center'}}>
                     <i className="fas fa-spinner fa-spin" style={{fontSize:'3rem', color:'#9e1b32'}}></i>
                 </div>
             ) : !cajaAbierta ? (
