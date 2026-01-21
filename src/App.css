@@ -1,5 +1,5 @@
 /* =========================================
-   1. RESET Y ESTILOS BASE
+   1. ESTILOS BASE Y RESET
    ========================================= */
 #root {
   max-width: 1280px;
@@ -9,16 +9,6 @@
   box-sizing: border-box;
 }
 
-/* Ajuste crítico para móviles: quitamos padding excesivo */
-@media (max-width: 768px) {
-  #root {
-    padding: 10px 5px; /* Solo 10px arriba/abajo, 5px lados */
-    width: 100%;
-    overflow-x: hidden; /* Evita desplazamiento lateral indeseado */
-  }
-}
-
-/* Animación del Logo (Opcional) */
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -31,35 +21,31 @@
 @media (prefers-reduced-motion: no-preference) { a:nth-of-type(2) .logo { animation: logo-spin infinite 20s linear; } }
 
 /* =========================================
-   2. LAYOUT GENERAL
+   2. LAYOUT GENERAL (PC / ESCRITORIO)
    ========================================= */
 .view {
   width: 100%;
   max-width: 100vw;
-  padding-top: 80px; /* Un poco más de espacio para que el Header no tape nada */
+  padding-top: 80px; /* Espacio para el header fijo */
   box-sizing: border-box;
 }
 
-/* =========================================
-   3. ESTILOS DE CAJERO (ESCRITORIO / PC)
-   ========================================= */
+/* CAJERO EN PC: Altura fija y scroll interno */
 .cajero-layout {
   display: flex;
-  /* En PC fijamos la altura para que se vea como una app de escritorio */
-  height: calc(100vh - 80px); 
+  height: calc(100vh - 80px); /* Ocupa toda la pantalla menos header */
   background-color: #f3f4f6;
-  overflow: hidden; 
+  overflow: hidden; /* Evita scroll doble en PC */
 }
 
-/* SECCIÓN IZQUIERDA: MENÚ DE PRODUCTOS */
+/* MENÚ IZQUIERDO (PC) */
 .menu-section {
   flex: 3;
   padding: 20px;
-  overflow-y: auto; /* Scroll interno solo aquí */
+  overflow-y: auto;
   border-right: 2px solid #e5e7eb;
 }
 
-/* Pestañas (Tabs) */
 .menu-tabs {
   display: flex;
   gap: 10px;
@@ -86,7 +72,6 @@
   box-shadow: 0 4px 8px rgba(158, 27, 50, 0.3);
 }
 
-/* Grilla de Productos (4 Columnas en PC) */
 .product-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -100,7 +85,6 @@
   text-align: center;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
   cursor: pointer;
-  transition: transform 0.2s, border 0.2s;
   border: 2px solid transparent;
   display: flex;
   flex-direction: column;
@@ -113,21 +97,10 @@
   border-color: #9e1b32;
 }
 
-.product-card span {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #333;
-  line-height: 1.2;
-}
+.product-card span { font-size: 1rem; font-weight: 600; color: #333; line-height: 1.2; }
+.product-card .price { font-size: 1.2rem; color: #9e1b32; font-weight: bold; margin-top: 10px; }
 
-.product-card .price {
-  font-size: 1.2rem;
-  color: #9e1b32;
-  font-weight: bold;
-  margin-top: 10px;
-}
-
-/* SECCIÓN DERECHA: TICKET (PC) */
+/* TICKET DERECHO (PC) */
 .pedido-section {
   flex: 1;
   background: white;
@@ -146,227 +119,89 @@
   font-weight: bold;
 }
 
-.pedido-lista {
-  flex: 1;
-  overflow-y: auto;
-  padding: 15px;
-}
+.pedido-lista { flex: 1; overflow-y: auto; padding: 15px; }
+.pedido-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+.total-display { font-size: 2rem; text-align: center; padding: 15px; font-weight: bold; color: #333; background: #f9fafb; border-top: 2px solid #eee; }
 
-.pedido-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.total-display {
-  font-size: 2rem;
-  text-align: center;
-  padding: 15px;
-  font-weight: bold;
-  color: #333;
-  background: #f9fafb;
-  border-top: 2px solid #eee;
-}
-
-/* =========================================
-   4. ESTILOS DE COCINA
-   ========================================= */
-.ordenes-layout {
-  display: flex;
-  gap: 20px;
-  padding: 20px;
-  height: calc(100vh - 80px);
-  overflow: hidden;
-}
-
-.ordenes-col {
-  flex: 1;
-  background: #f3f4f6;
-  border-radius: 12px;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  overflow-y: hidden;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-}
-
-.ordenes-col h3 {
-  text-align: center;
-  padding: 10px;
-  background: #fff;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  color: #333;
-  font-weight: 800;
-}
-
-.ordenes-list {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 5px;
-}
-
-.orden-card {
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-left: 5px solid #ccc;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
+/* COCINA (PC) */
+.ordenes-layout { display: flex; gap: 20px; padding: 20px; height: calc(100vh - 80px); overflow: hidden; }
+.ordenes-col { flex: 1; background: #f3f4f6; border-radius: 12px; padding: 15px; display: flex; flex-direction: column; overflow-y: hidden; }
+.ordenes-col h3 { text-align: center; padding: 10px; background: #fff; border-radius: 8px; margin-bottom: 15px; color: #333; font-weight: 800; }
+.ordenes-list { flex: 1; overflow-y: auto; padding-right: 5px; }
+.orden-card { background: white; border-radius: 10px; padding: 15px; margin-bottom: 15px; border-left: 5px solid #ccc; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 .orden-card.pendiente { border-left-color: #ef4444; }
 .orden-card.preparacion { border-left-color: #f59e0b; }
 .orden-card.listo { border-left-color: #10b981; }
-
-.orden-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-  font-weight: bold;
-  color: #555;
-}
-
-.orden-items {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0;
-  border-top: 1px dashed #eee;
-  border-bottom: 1px dashed #eee;
-  padding: 10px 0;
-}
-
-.btn-accion-cocina {
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
-  color: white;
-  cursor: pointer;
-}
+.btn-accion-cocina { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; color: white; cursor: pointer; }
 .btn-iniciar { background-color: #f59e0b; }
 .btn-terminar { background-color: #10b981; }
 
-/* APERTURA DE CAJA (MODAL) */
-.apertura-caja-container {
-  position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.8);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-.apertura-caja-card {
-  background: white;
-  padding: 30px;
-  border-radius: 15px;
-  width: 90%;
-  max-width: 400px;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-}
+/* MODAL APERTURA CAJA */
+.apertura-caja-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+.apertura-caja-card { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
 
 /* =========================================
-   5. CORRECCIONES PARA MÓVIL (IMPORTANTÍSIMO)
+   🚑 RESCATE MÓVIL 🚑 (AQUÍ ESTÁ LA SOLUCIÓN)
    ========================================= */
 
-/* Tablets (hasta 1024px) */
 @media (max-width: 1024px) {
-  .ordenes-layout {
-    flex-direction: column;
-    height: auto;
-    overflow-y: auto;
-  }
-  .ordenes-col {
-    max-height: 500px;
-    margin-bottom: 20px;
-  }
+  /* En tablets y móviles, permitimos que todo fluya verticalmente */
+  .ordenes-layout { flex-direction: column; height: auto; overflow-y: auto; }
+  .ordenes-col { max-height: 500px; margin-bottom: 20px; }
 }
 
-/* Celulares (hasta 768px) */
 @media (max-width: 768px) {
+  /* 1. FORZAMOS AL HTML Y BODY A CRECER */
+  html, body, #root {
+    height: auto !important;
+    overflow-y: auto !important; /* Habilita el scroll del navegador */
+    overflow-x: hidden;
+  }
   
-  /* A. CAJERO: Habilitar Scroll Infinito */
+  #root { padding: 10px 5px; }
+
+  /* 2. CAJERO: ROMPEMOS LA ESTRUCTURA FLEX RÍGIDA */
   .cajero-layout {
-    flex-direction: column;
-    /* La clave: altura automática y overflow visible para que bajes con el dedo */
-    height: auto !important; 
-    overflow: visible !important; 
-    padding-bottom: 40px;
+    display: block !important; /* Ya no es flex, es bloque normal */
+    height: auto !important;
+    overflow: visible !important;
+    padding-bottom: 150px !important; /* 🔥 COLCHÓN GIGANTE AL FINAL PARA QUE NADA SE CORTE */
   }
 
-  /* B. MENÚ: Ajustes para que no se corte arriba */
+  /* 3. MENÚ: SE VE PRIMERO */
   .menu-section {
-    flex: none;
     width: 100%;
     height: auto;
     overflow: visible;
     border-right: none;
-    padding: 10px 5px; /* Menos padding lateral */
-  }
-
-  /* Scroll horizontal suave en las pestañas */
-  .menu-tabs {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 10px;
-    -webkit-overflow-scrolling: touch;
-  }
-  .tab-button {
-    flex: 0 0 auto;
-    margin-right: 5px;
-    font-size: 0.9rem;
-    padding: 8px 12px;
-  }
-
-  /* Grilla responsive (2 columnas mínimo) */
-  .product-grid {
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 10px;
+    padding: 0 0 20px 0;
   }
   
-  .product-card {
-    padding: 10px;
-    min-height: 120px; /* Tarjetas más compactas */
-  }
+  .menu-tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 10px; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+  .tab-button { flex: 0 0 auto; margin-right: 5px; font-size: 0.9rem; }
+  
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+  .product-card { min-height: 120px; }
 
-  /* C. TICKET (SOLUCIÓN DEL CORTE) */
+  /* 4. TICKET: SE VE AL FINAL (DESPUÉS DE HACER SCROLL) */
   .pedido-section {
-    /* Quitamos el 'flex: 1' que obligaba a comprimirse */
-    flex: none; 
+    display: block !important;
+    position: relative !important; /* Asegura que no flote, que esté en el flujo */
     width: 100%;
-    height: auto;
-    
-    /* Diseño visual tipo tarjeta separada al final */
+    height: auto !important;
     margin-top: 20px;
-    background: white;
-    border-top: 4px solid #9e1b32;
-    border-radius: 15px 15px 0 0;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
     
-    /* Aseguramos que se vea todo el contenido */
-    overflow: visible; 
-    padding-bottom: 30px; /* Espacio extra al final para el dedo */
+    border-top: 5px solid #9e1b32;
+    border-radius: 15px 15px 0 0;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+    
+    padding-bottom: 50px; /* Espacio interno extra */
+    z-index: 10;
   }
 
-  .pedido-lista {
-    /* Si la lista es GIGANTE, le ponemos límite interno, si no, que crezca */
-    max-height: 300px;
-    overflow-y: auto;
-  }
+  .pedido-lista { max-height: 300px; overflow-y: auto; }
 
-  /* Botones grandes para dedos */
-  .action-buttons {
-    flex-direction: column; /* Botones uno arriba del otro si es muy angosto */
-  }
-  
-  .action-buttons button {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 15px !important;
-    font-size: 1.1rem;
-  }
+  /* Botones grandes y fáciles de tocar */
+  .action-buttons { flex-direction: column; }
+  .action-buttons button { width: 100%; margin-bottom: 10px; padding: 15px !important; font-size: 1.2rem !important; }
 }
