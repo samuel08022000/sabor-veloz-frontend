@@ -50,7 +50,7 @@ const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
 };
 
 // ==========================================
-// 2. POS INTERFACE
+// 2. POS INTERFACE (RESPONSIVE + TABS)
 // ==========================================
 const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const [pedidoActual, setPedidoActual] = useState([]);
@@ -59,8 +59,10 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const [metodoPago, setMetodoPago] = useState('Efectivo');
     const [nombreCliente, setNombreCliente] = useState('');
 
+    // Pestañas definidas manualmente
     const tabs = ['Hamburguesas', 'Pollos', 'Pipocas', 'Salchipapas', 'Bebidas', 'Otros'];
 
+    // Lógica de filtrado inteligente
     const getFilteredProducts = () => {
         return products.filter(p => {
             const nombre = p.nombreProducto.toLowerCase();
@@ -141,20 +143,16 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
 
     return (
         <div className="cajero-layout animated-fade-in">
-            {/* BOTÓN FLOTANTE CERRAR TURNO */}
-            <button 
-                onClick={onCerrarTurno}
-                style={{
-                    position: 'fixed', bottom: '20px', left: '20px', 
-                    background: '#333', color: 'white', border: 'none', 
-                    padding: '10px 20px', borderRadius: '30px', fontWeight: 'bold', 
-                    cursor: 'pointer', zIndex: 100
-                }}>
-                <i className="fas fa-lock"></i> CERRAR TURNO
-            </button>
-
+            {/* MENÚ IZQUIERDO (O SUPERIOR EN MÓVIL) */}
             <section className="menu-section">
-                <h2 style={{color:'#9e1b32', marginBottom:'15px'}}>MENÚ</h2>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
+                     <h2 style={{color:'#9e1b32', margin:0}}>MENÚ</h2>
+                     {/* Botón Cerrar Turno visible en móvil dentro del menú */}
+                     <button className="btn-cerrar-turno-movil" onClick={onCerrarTurno} style={{background:'#333', color:'white', border:'none', padding:'8px 15px', borderRadius:'20px', fontSize:'0.8rem', cursor:'pointer'}}>
+                        <i className="fas fa-lock"></i> Cerrar Turno
+                    </button>
+                </div>
+
                 <div className="menu-tabs">
                     {tabs.map(tab => (
                         <button key={tab} className={`tab-button ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
@@ -166,7 +164,7 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                 <div className="product-grid">
                     {filteredProducts.map(p => (
                         <div key={p.idProducto} className={`product-card ${!p.disponible ? 'agotado' : ''}`} onClick={() => p.disponible && agregarApedido(p)}>
-                            <span>{p.nombreProducto}</span>
+                            <span style={{display:'block', lineHeight:'1.2', marginBottom:'5px'}}>{p.nombreProducto}</span>
                             <div className="price">{p.precio.toFixed(2)} Bs</div>
                             {!p.disponible && <small style={{color:'red', fontWeight:'bold'}}>Agotado</small>}
                         </div>
@@ -174,17 +172,21 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                 </div>
             </section>
 
+            {/* TICKET DERECHO (O INFERIOR EN MÓVIL) */}
             <section className="pedido-section">
-                <div className="pedido-header">Pedido Actual</div>
+                <div className="pedido-header">
+                    <span>Pedido Actual</span>
+                    <span style={{fontSize:'0.9rem'}}>Items: {pedidoActual.reduce((acc, item) => acc + item.cantidad, 0)}</span>
+                </div>
 
-                <div style={{padding: '15px', background: '#fff', borderBottom: '1px solid #eee'}}>
+                <div style={{padding: '10px', background: '#fff', borderBottom: '1px solid #eee'}}>
                     <input 
                         type="text" 
                         placeholder="Nombre del Cliente..." 
                         value={nombreCliente}
                         onChange={(e) => setNombreCliente(e.target.value)}
                         style={{
-                            width: '100%', padding: '12px', borderRadius: '8px', 
+                            width: '100%', padding: '10px', borderRadius: '8px', 
                             border: '1px solid #ccc', fontSize: '1rem', background: '#f9f9f9'
                         }}
                     />
@@ -204,23 +206,24 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                                 </div>
                                 <div className="pedido-actions" style={{display:'flex', gap:'10px', alignItems:'center'}}>
                                     <strong>{(item.cantidad * item.precio).toFixed(2)}</strong>
-                                    <button onClick={() => removerDePedido(item.idProducto)} style={{background:'#fee2e2', color:'#ef4444', border:'none', borderRadius:'50%', width:'25px', height:'25px', cursor:'pointer'}}>×</button>
+                                    <button onClick={() => removerDePedido(item.idProducto)} style={{background:'#fee2e2', color:'#ef4444', border:'none', borderRadius:'50%', width:'25px', height:'25px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center'}}>×</button>
                                 </div>
                             </div>
                         ))
                     )}
                 </div>
 
-                <div className="pago-selector-container" style={{padding:'10px'}}>
+                <div className="pago-selector-container" style={{padding:'10px', background:'#f8f9fa'}}>
                     <div className="pago-buttons" style={{display:'flex', gap:'5px'}}>
                         {opcionesPago.map(opcion => (
                             <button
                                 key={opcion}
                                 onClick={() => setMetodoPago(opcion)}
                                 style={{
-                                    flex:1, padding:'10px', border:'1px solid #ddd', 
+                                    flex:1, padding:'8px', border:'1px solid #ddd', 
                                     borderRadius:'5px', background: metodoPago===opcion ? '#333':'white',
-                                    color: metodoPago===opcion ? 'white':'#333', cursor:'pointer'
+                                    color: metodoPago===opcion ? 'white':'#333', cursor:'pointer',
+                                    fontWeight: metodoPago===opcion ? 'bold':'normal'
                                 }}
                             >
                                 {opcion}
@@ -233,11 +236,11 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                     Total: {total} Bs
                 </div>
                 
-                <div className="action-buttons" style={{padding:'15px', display:'flex', gap:'10px'}}>
-                    <button className="btn-registra" style={{flex:1, padding:'15px', background:'#9e1b32', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold'}} onClick={() => registrarVenta("Local")} disabled={procesando || pedidoActual.length === 0}>
+                <div className="action-buttons" style={{padding:'10px', display:'flex', gap:'10px'}}>
+                    <button className="btn-registra" style={{flex:1, padding:'15px', background:'#9e1b32', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold', fontSize:'1rem'}} onClick={() => registrarVenta("Local")} disabled={procesando || pedidoActual.length === 0}>
                         COMER AQUÍ
                     </button>
-                    <button className="btn-cocina" style={{flex:1, padding:'15px', background:'#f59e0b', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold'}} onClick={() => registrarVenta("Llevar")} disabled={procesando || pedidoActual.length === 0}>
+                    <button className="btn-cocina" style={{flex:1, padding:'15px', background:'#f59e0b', color:'white', border:'none', borderRadius:'8px', cursor:'pointer', fontWeight:'bold', fontSize:'1rem'}} onClick={() => registrarVenta("Llevar")} disabled={procesando || pedidoActual.length === 0}>
                         LLEVAR
                     </button>
                 </div>
@@ -247,7 +250,7 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
 };
 
 // ==========================================
-// 3. COMPONENTE PRINCIPAL Y LÓGICA DE SEGURIDAD
+// 3. COMPONENTE PRINCIPAL CON SEGURIDAD
 // ==========================================
 export const Cajero = ({ onLogout, user }) => {
     const [cajaAbierta, setCajaAbierta] = useState(false);
@@ -258,11 +261,10 @@ export const Cajero = ({ onLogout, user }) => {
         verificarEstadoCaja();
     }, []);
 
-    // 🔒 1. SEGURIDAD: Prevenir cierre accidental de pestaña/navegador
+    // 🔒 SEGURIDAD 1: Evitar cierre de pestaña/navegador
     useEffect(() => {
         const protectWindow = (e) => {
             if (cajaAbierta) {
-                // Esto activa la alerta nativa del navegador
                 e.preventDefault();
                 e.returnValue = "⚠️ Tienes un turno abierto. Debes cerrarlo antes de salir.";
             }
@@ -271,14 +273,12 @@ export const Cajero = ({ onLogout, user }) => {
         return () => window.removeEventListener("beforeunload", protectWindow);
     }, [cajaAbierta]);
 
-    // 🔒 2. SEGURIDAD: Prevenir Logout manual desde la app
+    // 🔒 SEGURIDAD 2: Evitar Logout manual
     const handleLogoutSeguro = () => {
         if (cajaAbierta) {
-            // Mostramos alerta bloqueante
-            alert("🛑 ¡ACCESO DENEGADO!\n\nNo puedes cerrar sesión mientras tengas el TURNO ABIERTO.\n\nPor favor, realiza el 'Cierre de Turno' primero para cuadrar la caja.");
-            return; // ⛔ Cancelamos la acción de salir
+            alert("🛑 ¡ACCESO DENEGADO!\n\nNo puedes cerrar sesión mientras tengas el TURNO ABIERTO.\n\nPor favor, realiza el 'Cierre de Turno' primero.");
+            return;
         }
-        // Si no hay caja abierta, permitimos salir
         onLogout();
     };
 
@@ -339,9 +339,7 @@ export const Cajero = ({ onLogout, user }) => {
                 IdUsuario: user.idUsuario,
                 MontoCierreCalculado: montoFinal 
             });
-            alert(`✅ Turno cerrado correctamente. Ahora puedes cerrar sesión.`);
-            
-            // Forzamos recarga para limpiar todo estado
+            alert(`✅ Turno cerrado correctamente.`);
             window.location.reload(); 
         } catch (error) {
             alert("Error al cerrar: " + (error.response?.data?.message || error.message));
@@ -351,7 +349,6 @@ export const Cajero = ({ onLogout, user }) => {
 
     return (
         <div id="cajero-view" className="view" style={{paddingTop:'70px'}}>
-            {/* 🔥 USAMOS handleLogoutSeguro EN LUGAR DE onLogout */}
             <Header title="SABOR VELOZ" role="CAJERO" userName={user.nombre} onLogout={handleLogoutSeguro} />
             
             {loading ? (
