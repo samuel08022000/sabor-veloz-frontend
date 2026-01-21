@@ -2,30 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './Layouts';
 import api from '../api/axios';
 
-// Componente Apertura (Sin cambios)
+// Componente Apertura
 const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
     const [montoInicial, setMontoInicial] = useState('');
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!montoInicial || isNaN(montoInicial)) return alert("Ingresa un monto válido");
+        if (!montoInicial || isNaN(montoInicial)) return alert("Monto inválido");
         onAbrirCaja(montoInicial);
     };
     return (
         <div className="apertura-caja-container animated-fade-in">
             <div className="apertura-caja-card">
                 <i className="fas fa-cash-register" style={{fontSize: '3rem', color: '#9e1b32', marginBottom:'20px'}}></i>
-                <h2 style={{color:'#333'}}>APERTURA DE TURNO</h2>
+                <h2>APERTURA</h2>
                 <form onSubmit={handleSubmit}>
-                    <div style={{margin:'15px 0', textAlign:'left'}}>
-                        <label style={{fontWeight:'bold'}}>Cajero</label>
-                        <input type="text" value={userName} readOnly style={{width:'100%', padding:'10px', background:'#eee', border:'1px solid #ccc', borderRadius:'5px'}} />
-                    </div>
                     <div style={{margin:'15px 0', textAlign:'left'}}>
                         <label style={{fontWeight:'bold'}}>Monto Inicial</label>
                         <input type="number" value={montoInicial} onChange={(e) => setMontoInicial(e.target.value)} placeholder="0.00" required style={{width:'100%', padding:'10px', fontSize:'1.2rem', border:'1px solid #9e1b32', borderRadius:'5px'}} />
                     </div>
                     <button type="submit" style={{width:'100%', padding:'15px', background:'#9e1b32', color:'white', border:'none', borderRadius:'5px', fontSize:'1.1rem'}} disabled={loading}>
-                        {loading ? 'ABRIENDO...' : 'INICIAR TURNO'}
+                        {loading ? 'ABRIENDO...' : 'INICIAR'}
                     </button>
                 </form>
             </div>
@@ -103,7 +99,7 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
 
     return (
         <div className="cajero-layout animated-fade-in">
-            {/* ZONA 1: MENU Y PRODUCTOS (SCROLL) */}
+            {/* ZONA 1: PRODUCTOS (SCROLL) */}
             <section className="menu-section">
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}>
                      <h2 style={{color:'#9e1b32', margin:0, fontSize:'1.2rem'}}>MENÚ</h2>
@@ -120,7 +116,6 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                     ))}
                 </div>
                 
-                {/* 1 Columna en Celular / 4 en PC (Controlado por CSS) */}
                 <div className="product-grid">
                     {getFilteredProducts().map(p => (
                         <div key={p.idProducto} className={`product-card ${!p.disponible ? 'agotado' : ''}`} onClick={() => p.disponible && agregarApedido(p)}>
@@ -132,20 +127,18 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                 </div>
             </section>
 
-            {/* ZONA 2: TICKET (FIJO ABAJO EN CELULAR) */}
+            {/* ZONA 2: TICKET FIJO ABAJO */}
             <section className="pedido-section">
-                <div className="pedido-header">
-                    <span>Pedido ({pedidoActual.length})</span>
-                    <span style={{fontSize:'0.9rem'}}>Total: {total} Bs</span>
-                </div>
+                {/* 1. Título "Ticket Actual" Restaurado */}
+                <div className="pedido-header">Ticket Actual</div>
 
-                <div className="cliente-input-container">
+                <div style={{padding:'5px 10px'}}>
                     <input type="text" placeholder="Cliente..." value={nombreCliente} onChange={(e)=>setNombreCliente(e.target.value)} 
                         style={{width:'100%', padding:'8px', borderRadius:'5px', border:'1px solid #ccc', marginTop:'5px'}} />
                 </div>
 
                 <div className="pedido-lista">
-                    {pedidoActual.length === 0 ? <p style={{textAlign:'center', color:'#ccc', fontSize:'0.9rem'}}>Vacío</p> : 
+                    {pedidoActual.length === 0 ? <p style={{textAlign:'center', color:'#ccc', fontSize:'0.9rem', padding:'10px'}}>Sin productos</p> : 
                         pedidoActual.map(item => (
                             <div key={item.idProducto} className="pedido-item">
                                 <div>
@@ -161,8 +154,8 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                     }
                 </div>
 
-                <div className="pago-selector-container">
-                    <div className="pago-buttons" style={{display:'flex', gap:'5px', marginTop:'5px'}}>
+                <div className="pago-selector-container" style={{padding:'5px 10px'}}>
+                    <div className="pago-buttons" style={{display:'flex', gap:'5px'}}>
                         {['Efectivo', 'Tarjeta', 'QR'].map(op => (
                             <button key={op} onClick={()=>setMetodoPago(op)} 
                                 style={{flex:1, borderRadius:'5px', border:'1px solid #ddd', background: metodoPago===op ? '#333':'#fff', color: metodoPago===op ? '#fff':'#333'}}>
@@ -170,6 +163,11 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                             </button>
                         ))}
                     </div>
+                </div>
+
+                {/* 2. Total GRANDE y en su lugar original */}
+                <div className="total-display">
+                    Total: {total} Bs
                 </div>
 
                 <div className="action-buttons">
