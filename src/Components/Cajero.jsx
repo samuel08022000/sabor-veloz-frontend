@@ -59,6 +59,18 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const [metodoPago, setMetodoPago] = useState('Efectivo');
     const [nombreCliente, setNombreCliente] = useState('');
 
+    // <--- [NUEVO INICIO] VARIABLES PARA LA VISTA MOVIL --->
+    const [activeMobileTab, setActiveMobileTab] = useState('menu'); // 'menu' o 'ticket'
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    // Detectar si cambia el tamaño de la pantalla (para activar/desactivar modo movil)
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+    // <--- [NUEVO FIN] --->
+
     const tabs = ['Hamburguesas', 'Pollos', 'Pipocas', 'Salchipapas', 'Bebidas', 'Otros'];
 
     const getFilteredProducts = () => {
@@ -126,6 +138,8 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
             setPedidoActual([]); 
             setMetodoPago('Efectivo');
             setNombreCliente('');
+            // <--- [NUEVO] OPCIONAL: Volver al menú después de cobrar en móvil
+            if(isMobile) setActiveMobileTab('menu');
         } catch (error) {
             console.error(error);
             alert("❌ Error: " + (error.response?.data || error.message));
@@ -135,12 +149,18 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     };
 
     const total = pedidoActual.reduce((sum, item) => sum + (item.cantidad * item.precio), 0).toFixed(2);
+    // Calcular cantidad total de items para el badge del botón (opcional)
+    const totalItems = pedidoActual.reduce((sum, item) => sum + item.cantidad, 0);
+
     const opcionesPago = ['Efectivo', 'Tarjeta', 'QR'];
 
     return (
-        <div className="cajero-layout animated-fade-in">
+        // <--- [MODIFICADO] Agregué paddingBottom extra si es móvil para que no lo tape la barra --->
+        <div className="cajero-layout animated-fade-in" style={{ paddingBottom: isMobile ? '70px' : '0' }}>
+            
             {/* SECCIÓN IZQUIERDA: MENÚ */}
-            <section className="menu-section">
+            {/* <--- [MODIFICADO] Control de visibilidad para móvil (block/none) ---> */}
+            <section className="menu-section" style={{ display: (isMobile && activeMobileTab !== 'menu') ? 'none' : 'block' }}>
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
                      <h2 style={{color:'#9e1b32', margin:0}}>MENÚ</h2>
                      <button onClick={onCerrarTurno} style={{background:'#333', color:'white', border:'none', padding:'8px 15px', borderRadius:'20px', fontSize:'0.8rem', cursor:'pointer'}}>
@@ -168,7 +188,8 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
             </section>
 
             {/* SECCIÓN DERECHA: TICKET */}
-            <section className="pedido-section">
+            {/* <--- [MODIFICADO] Control de visibilidad para móvil (block/none) ---> */}
+            <section className="pedido-section" style={{ display: (isMobile && activeMobileTab !== 'ticket') ? 'none' : 'block' }}>
                 <div className="pedido-header">Ticket Actual</div>
 
                 <div style={{padding: '10px', background: '#fff', borderBottom: '1px solid #eee'}}>
@@ -237,6 +258,47 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                     </button>
                 </div>
             </section>
+
+            {/* <--- [NUEVO] BARRA DE NAVEGACIÓN SOLO PARA MÓVIL ---> */}
+            {isMobile && (
+                <div style={{
+                    position: 'fixed', bottom: 0, left: 0, right: 0, 
+                    height: '60px', background: '#fff', borderTop: '1px solid #ccc',
+                    display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+                    boxShadow: '0 -2px 10px rgba(0,0,0,0.1)', zIndex: 999
+                }}>
+                    <button 
+                        onClick={() => setActiveMobileTab('menu')}
+                        style={{
+                            flex: 1, height: '100%', border: 'none', background: activeMobileTab === 'menu' ? '#fff0f0' : '#fff',
+                            color: activeMobileTab === 'menu' ? '#9e1b32' : '#666', fontWeight: 'bold', fontSize: '1rem'
+                        }}
+                    >
+                        <i className="fas fa-utensils"></i> MENÚ
+                    </button>
+                    <div style={{width: '1px', background: '#ccc', height: '60%'}}></div>
+                    <button 
+                        onClick={() => setActiveMobileTab('ticket')}
+                        style={{
+                            flex: 1, height: '100%', border: 'none', background: activeMobileTab === 'ticket' ? '#fff0f0' : '#fff',
+                            color: activeMobileTab === 'ticket' ? '#9e1b32' : '#666', fontWeight: 'bold', fontSize: '1rem',
+                            position: 'relative'
+                        }}
+                    >
+                        <i className="fas fa-receipt"></i> CUENTA
+                        {totalItems > 0 && (
+                            <span style={{
+                                position: 'absolute', top: '8px', right: '20%', 
+                                background: '#9e1b32', color: 'white', borderRadius: '50%', 
+                                width: '20px', height: '20px', fontSize: '0.8rem', 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                {totalItems}
+                            </span>
+                        )}
+                    </button>
+                </div>
+            )}
         </div>
     );
 };
