@@ -213,3 +213,43 @@
 }
 .btn-iniciar { background-color: #f59e0b; }
 .btn-terminar { background-color: #10b981; }
+/* =========================================
+   AGREGAR AL FINAL DE APP.CSS
+   Ajustes para modo Celular (Responsivo)
+   ========================================= */
+@media (max-width: 768px) {
+  
+  /* 1. Que los productos se vean en 2 columnas en vez de 4 */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* 2. Ajuste de altura para las tarjetas de producto en móvil */
+  .product-card {
+    padding: 10px;
+    height: auto; /* Que se adapte al contenido */
+    min-height: 120px;
+  }
+  
+  .product-card span {
+    font-size: 0.9rem; /* Letra un poco más chica para que quepan nombres largos */
+  }
+
+  /* 3. Quitar el borde derecho de la sección menú (ya no es necesario en tabs) */
+  .menu-section {
+    border-right: none;
+    padding: 10px;
+  }
+
+  /* 4. Asegurar que los botones grandes (Llevar/Comer aquí) se vean bien */
+  .action-buttons {
+    flex-direction: column; /* Uno arriba del otro si prefieres, o row si caben */
+    height: auto;
+  }
+  
+  .btn-registra, .btn-cocina {
+    padding: 20px !important; /* Más grandes para dedo gordo */
+    font-size: 1.2rem !important;
+  }
+}
