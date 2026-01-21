@@ -1,8 +1,20 @@
+/* =========================================
+   RESET Y ESTILOS BASE
+   ========================================= */
 #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  box-sizing: border-box; /* Importante para que el padding no rompa el ancho */
+}
+
+/* En móvil, quitamos el padding exagerado del root para ganar espacio */
+@media (max-width: 768px) {
+  #root {
+    padding: 0.5rem; /* Mucho menos margen en celular */
+    width: 100%;
+  }
 }
 
 .logo {
@@ -19,12 +31,8 @@
 }
 
 @keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -33,30 +41,35 @@
   }
 }
 
-.card {
-  padding: 2em;
+.card { padding: 2em; }
+.read-the-docs { color: #888; }
+
+/* =========================================
+   LAYOUT GENERAL (ESCRITORIO)
+   ========================================= */
+.view {
+  width: 100%;
+  max-width: 100vw;
+  padding-top: 70px; /* Espacio para el header */
+  box-sizing: border-box;
 }
 
-.read-the-docs {
-  color: #888;
-}
-/* --- LAYOUT PRINCIPAL DEL CAJERO --- */
+/* CAJERO - Estilo Base (PC) */
 .cajero-layout {
   display: flex;
-  height: calc(100vh - 70px); /* Restamos el alto del header */
+  height: calc(100vh - 70px); /* Altura fija en PC para que no haya scroll en toda la página */
   background-color: #f3f4f6;
-  overflow: hidden;
+  overflow: hidden; /* En PC ocultamos el desborde general porque cada panel tiene su propio scroll */
 }
 
-/* SECCIÓN IZQUIERDA: MENÚ Y PRODUCTOS */
+/* SECCIÓN IZQUIERDA: MENÚ */
 .menu-section {
-  flex: 3; /* Ocupa el 75% del ancho */
+  flex: 3;
   padding: 20px;
-  overflow-y: auto;
+  overflow-y: auto; /* Scroll interno solo para productos */
   border-right: 2px solid #e5e7eb;
 }
 
-/* PESTAÑAS (SUB CATEGORIAS) */
 .menu-tabs {
   display: flex;
   gap: 10px;
@@ -77,16 +90,15 @@
 }
 
 .tab-button.active {
-  background-color: #9e1b32; /* Color rojo de tu marca */
+  background-color: #9e1b32;
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(158, 27, 50, 0.3);
 }
 
-/* GRILLA DE PRODUCTOS (4 COLUMNAS) */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 Columnas exactas */
+  grid-template-columns: repeat(4, 1fr); /* 4 Columnas en PC */
   gap: 15px;
 }
 
@@ -102,7 +114,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 140px; /* Altura fija para uniformidad */
+  height: 140px;
 }
 
 .product-card:hover {
@@ -123,13 +135,14 @@
   margin-top: 10px;
 }
 
-/* SECCIÓN DERECHA: TICKET / PEDIDO ACTUAL */
+/* SECCIÓN DERECHA: TICKET */
 .pedido-section {
-  flex: 1; /* Ocupa el 25% del ancho */
+  flex: 1;
   background: white;
   display: flex;
   flex-direction: column;
   box-shadow: -4px 0 15px rgba(0,0,0,0.05);
+  z-index: 50; /* Para que la sombra se vea bien */
 }
 
 .pedido-header {
@@ -155,16 +168,6 @@
   border-bottom: 1px solid #eee;
 }
 
-.pedido-item-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.pedido-item-name {
-  font-weight: bold;
-  font-size: 0.9rem;
-}
-
 .total-display {
   font-size: 2rem;
   text-align: center;
@@ -177,42 +180,31 @@
 
 /* APERTURA DE CAJA */
 .apertura-caja-container {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8); /* Fondo oscuro obligatorio */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 .apertura-caja-card {
-    background: white;
-    padding: 40px;
-    border-radius: 15px;
-    width: 400px;
-    text-align: center;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-}
-/* =========================================
-   ESTILOS RESPONSIVE (CELULAR Y TABLET)
-   ========================================= */
-
-/* --- AJUSTES GENERALES --- */
-/* Hacemos que la vista ocupe el 100% real del dispositivo */
-.view {
-  width: 100%;
-  max-width: 100vw;
-  padding-top: 70px; /* Espacio para el header fijo */
-  box-sizing: border-box;
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  width: 90%; /* Responsive ancho */
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
-/* --- COCINA RESPONSIVE --- */
+/* COCINA */
 .ordenes-layout {
   display: flex;
   gap: 20px;
   padding: 20px;
-  height: calc(100vh - 80px); /* Ocupa toda la pantalla menos el header */
-  overflow: hidden; /* Evita scroll doble */
+  height: calc(100vh - 80px);
+  overflow: hidden;
 }
 
 .ordenes-col {
@@ -222,7 +214,7 @@
   padding: 15px;
   display: flex;
   flex-direction: column;
-  overflow-y: hidden; /* El scroll va dentro de la lista, no la columna */
+  overflow-y: hidden;
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
@@ -234,16 +226,14 @@
   margin-bottom: 15px;
   color: #333;
   font-weight: 800;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .ordenes-list {
   flex: 1;
-  overflow-y: auto; /* Scroll independiente por columna */
-  padding-right: 5px; /* Espacio para la barra de scroll */
+  overflow-y: auto;
+  padding-right: 5px;
 }
 
-/* TARJETAS DE COCINA */
 .orden-card {
   background: white;
   border-radius: 10px;
@@ -251,12 +241,10 @@
   margin-bottom: 15px;
   border-left: 5px solid #ccc;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  transition: transform 0.2s;
 }
-
-.orden-card.pendiente { border-left-color: #ef4444; } /* Rojo */
-.orden-card.preparacion { border-left-color: #f59e0b; } /* Naranja */
-.orden-card.listo { border-left-color: #10b981; } /* Verde */
+.orden-card.pendiente { border-left-color: #ef4444; }
+.orden-card.preparacion { border-left-color: #f59e0b; }
+.orden-card.listo { border-left-color: #10b981; }
 
 .orden-header {
   display: flex;
@@ -275,12 +263,6 @@
   padding: 10px 0;
 }
 
-.orden-items li {
-  margin-bottom: 5px;
-  font-size: 1.1rem; /* Letra grande para leer rápido */
-}
-
-/* BOTONES DE ACCIÓN COCINA GRANDES PARA DEDOS */
 .btn-accion-cocina {
   width: 100%;
   padding: 12px;
@@ -289,113 +271,102 @@
   font-weight: bold;
   color: white;
   cursor: pointer;
-  font-size: 1rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
 }
-
 .btn-iniciar { background-color: #f59e0b; }
 .btn-terminar { background-color: #10b981; }
 
-/* --- CAJERO RESPONSIVE --- */
-.cajero-layout {
-  display: flex;
-  height: calc(100vh - 70px);
-  background-color: #f3f4f6;
-  overflow: hidden;
-}
-
-.menu-section {
-  flex: 3;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-/* GRILLA INTELIGENTE: Se adapta sola a 1, 2, 3 o 4 columnas según el espacio */
-.product-grid {
-  display: grid;
-  /* Esto crea columnas de mínimo 140px. Si caben 4, pone 4. Si caben 2, pone 2. */
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
-  gap: 15px;
-  padding-bottom: 80px; /* Espacio extra abajo para no tapar contenido en móvil */
-}
-
-.pedido-section {
-  flex: 1;
-  min-width: 300px;
-  background: white;
-  display: flex;
-  flex-direction: column;
-  box-shadow: -4px 0 15px rgba(0,0,0,0.05);
-  z-index: 50;
-}
-
 /* =========================================
-   MEDIA QUERIES (AQUÍ OCURRE LA MAGIA MÓVIL)
+   MEDIA QUERIES (MÓVIL Y TABLET)
    ========================================= */
 
-/* TABLETS Y CELULARES (Pantallas menores a 1024px) */
 @media (max-width: 1024px) {
-  /* COCINA: En tablet vertical o celular, las columnas se apilan */
+  /* COCINA EN TABLET: Scroll vertical */
   .ordenes-layout {
-    flex-direction: column; 
-    height: auto; /* La altura crece con el contenido */
-    overflow-y: auto; /* Scroll general */
+    flex-direction: column;
+    height: auto;
+    overflow-y: auto;
   }
-
   .ordenes-col {
-    max-height: 400px; /* Altura máxima por sección para que no sea infinito */
+    max-height: 500px; /* Limite de altura por columna */
     margin-bottom: 20px;
   }
 }
 
-/* CELULARES (Pantallas menores a 768px) */
 @media (max-width: 768px) {
-  /* CAJERO: Cambiamos a diseño vertical */
+  /* --- CAJERO MÓVIL (CORRECCIÓN CRÍTICA) --- */
+  
   .cajero-layout {
     flex-direction: column;
+    /* IMPORTANTE: Quitamos height fijo y overflow hidden para que no se corte */
+    height: auto; 
+    overflow: visible; 
+    padding-bottom: 80px; /* Espacio extra abajo para que el ticket no tape el último producto */
   }
 
+  /* El Menú ocupa su espacio natural y empuja hacia abajo */
   .menu-section {
-    flex: 1; /* Ocupa el espacio disponible */
-    order: 1; /* Primero el menú */
+    flex: none;
+    height: auto;
+    overflow: visible;
+    border-right: none;
+    padding: 10px;
   }
-  
-  /* Botones de categorías horizontales con scroll */
+
+  /* Pestañas horizontales con scroll */
   .menu-tabs {
-    flex-wrap: nowrap; /* No bajar de línea */
-    overflow-x: auto; /* Scroll horizontal con el dedo */
+    flex-wrap: nowrap;
+    overflow-x: auto;
     padding-bottom: 10px;
     -webkit-overflow-scrolling: touch;
+    white-space: nowrap; /* Evita saltos de línea */
   }
   
   .tab-button {
-    flex: 0 0 auto; /* No encoger botones */
+    flex: 0 0 auto;
+    margin-right: 5px;
   }
 
-  /* El Ticket en móvil se vuelve un panel inferior fijo o colapsable */
-  .pedido-section {
-    order: 2; /* Segundo el ticket */
-    height: auto;
-    border-top: 2px solid #9e1b32;
-    box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+  /* Grilla responsive: columnas de mínimo 100px */
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
   }
   
-  /* Ajuste visual de tarjetas de producto en móvil */
   .product-card {
-    padding: 15px 10px;
+    padding: 10px;
+    height: auto; /* Altura flexible */
+    min-height: 110px;
+  }
+  
+  .product-card span { font-size: 0.9rem; }
+  .product-card .price { font-size: 1rem; }
+
+  /* TICKET MÓVIL: Panel inferior deslizable o fijo */
+  .pedido-section {
+    position: fixed; /* Lo fijamos abajo */
+    bottom: 0;
+    left: 0;
+    width: 100%;
     height: auto;
-    min-height: 120px;
+    max-height: 50vh; /* Máximo mitad de pantalla */
+    border-top: 4px solid #9e1b32;
+    border-radius: 20px 20px 0 0; /* Borde redondeado arriba */
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: transform 0.3s ease;
   }
-  
-  .product-card span {
-    font-size: 0.9rem;
-  }
-  
-  /* Ocultar lista detallada en móvil si se desea ahorrar espacio (opcional) */
+
   .pedido-lista {
-    max-height: 200px; /* Limitar altura del ticket en móvil */
+    max-height: 25vh; /* Lista scrolleable pequeña */
+    padding: 10px;
   }
+
+  /* Reducimos tamaños de letra en ticket móvil */
+  .total-display {
+    font-size: 1.5rem;
+    padding: 10px;
+  }
+  
+  /* Botón para ocultar/mostrar ticket si quisieras agregarlo luego */
+  /* Por ahora, siempre visible abajo */
 }
