@@ -50,7 +50,7 @@ const AperturaCaja = ({ onAbrirCaja, userName, loading }) => {
 };
 
 // ==========================================
-// 2. POS INTERFACE (CORREGIDO: ESCRITORIO ORIGINAL / MÓVIL SCROLL)
+// 2. POS INTERFACE (CORREGIDO SCROLL HORIZONTAL Y VERTICAL)
 // ==========================================
 const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const [pedidoActual, setPedidoActual] = useState([]);
@@ -59,7 +59,7 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const [metodoPago, setMetodoPago] = useState('Efectivo');
     const [nombreCliente, setNombreCliente] = useState('');
 
-    // Detectar si es Móvil para activar la vista partida
+    // Detectar móvil
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -145,31 +145,40 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
     const total = pedidoActual.reduce((sum, item) => sum + (item.cantidad * item.precio), 0).toFixed(2);
     const opcionesPago = ['Efectivo', 'Tarjeta', 'QR'];
 
-    // --- ESTILOS DINÁMICOS ---
-    // Si no es móvil, devolvemos un objeto vacío {} para que use SOLO las clases de CSS originales.
+    // --- ESTILOS CORREGIDOS (AQUÍ ESTÁ LA SOLUCIÓN) ---
     const containerStyle = isMobile ? {
-        display: 'flex', flexDirection: 'column', height: 'calc(100vh - 70px)', overflow: 'hidden'
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: 'calc(100vh - 70px)', // Altura total menos el header
+        overflow: 'hidden' // Evita scroll doble en la página entera
     } : {};
 
     const menuSectionStyle = isMobile ? {
-        flex: 1, // Ocupa el espacio sobrante
-        overflowY: 'auto', // PERMITE EL SCROLL DE PRODUCTOS
-        padding: '10px', background: '#f3f4f6'
-    } : {}; // En desktop usa la clase css original
+        flex: 1, // Toma todo el espacio disponible
+        overflowY: 'auto', // Permite scroll vertical SOLO en productos
+        minHeight: '0', // <--- TRUCO IMPORTANTE para que flexbox permita el scroll
+        padding: '10px', 
+        background: '#f3f4f6'
+    } : {}; 
 
     const pedidoSectionStyle = isMobile ? {
-        height: 'auto', maxHeight: '45%', // Altura fija para que no tape los productos
-        borderTop: '3px solid #9e1b32', background: 'white',
-        display: 'flex', flexDirection: 'column', zIndex: 20,
+        height: 'auto', 
+        flexShrink: 0, // <--- Evita que esta sección se aplaste
+        borderTop: '3px solid #9e1b32', 
+        background: 'white',
+        display: 'flex', 
+        flexDirection: 'column', 
+        zIndex: 20,
         boxShadow: '0 -4px 15px rgba(0,0,0,0.2)'
-    } : {}; // En desktop usa la clase css original
+    } : {};
 
     return (
         <div className="cajero-layout animated-fade-in" style={containerStyle}>
             
-            {/* --- [SOLO MÓVIL] BARRA DE CERRAR TURNO (Debajo del Header) --- */}
+            {/* --- [SOLO MÓVIL] BARRA DE CERRAR TURNO (FIJA ARRIBA) --- */}
             {isMobile && (
                 <div style={{
+                    flexShrink: 0, // <--- No deja que se aplaste
                     background: '#2d3748', padding: '8px 15px', color: 'white', 
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.2)', zIndex: 10
@@ -187,22 +196,36 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
             {/* --- SECCIÓN 1: MENÚ DE PRODUCTOS (ARRIBA) --- */}
             <section className="menu-section" style={menuSectionStyle}>
                 
-                {/* Header del menú (En móvil ocultamos el botón cerrar turno de aquí porque ya está arriba) */}
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'15px'}}>
+                {/* Header del menú */}
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}>
                      <h2 style={{color:'#9e1b32', margin:0}}>MENÚ</h2>
-                     {!isMobile && ( // Solo mostrar este botón en computadora
+                     {!isMobile && ( 
                          <button onClick={onCerrarTurno} style={{background:'#333', color:'white', border:'none', padding:'8px 15px', borderRadius:'20px', fontSize:'0.8rem', cursor:'pointer'}}>
                             <i className="fas fa-lock"></i> Cerrar Turno
                         </button>
                      )}
                 </div>
 
-                <div className="menu-tabs" style={isMobile ? {display:'flex', gap:'8px', overflowX:'auto', paddingBottom:'5px'} : {}}>
+                {/* --- [CORRECCIÓN SCROLL HORIZONTAL] --- */}
+                <div className="menu-tabs" style={isMobile ? {
+                    display:'flex', 
+                    gap:'10px', 
+                    overflowX:'auto', // Habilita deslizar izquierda/derecha
+                    whiteSpace: 'nowrap', // Obliga a que estén en una línea
+                    paddingBottom:'10px',
+                    WebkitOverflowScrolling: 'touch' // Suaviza el scroll en iPhone
+                } : {}}>
                     {tabs.map(tab => (
                         <button key={tab} className={`tab-button ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}
-                            style={isMobile ? { // Ajuste de estilo para tabs en móvil
-                                padding: '8px 12px', whiteSpace: 'nowrap', borderRadius: '20px', 
-                                background: activeTab===tab ? '#9e1b32':'white', color: activeTab===tab ? 'white':'#666', border: 'none'
+                            style={isMobile ? { 
+                                flexShrink: 0, // <--- ¡ESTO ES CLAVE! Evita que los botones se aplasten
+                                padding: '10px 15px', 
+                                whiteSpace: 'nowrap', 
+                                borderRadius: '20px', 
+                                background: activeTab===tab ? '#9e1b32':'white', 
+                                color: activeTab===tab ? 'white':'#666', 
+                                border: 'none',
+                                boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
                             } : {}}
                         >
                             {tab}
@@ -210,12 +233,20 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                     ))}
                 </div>
                 
+                {/* Grid de Productos */}
                 <div className="product-grid" style={isMobile ? {
-                    display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginTop: '10px'
+                    display: 'grid', 
+                    gridTemplateColumns: 'repeat(2, 1fr)', 
+                    gap: '10px', 
+                    marginTop: '10px',
+                    paddingBottom: '50px' // <--- Espacio extra abajo para poder ver el último producto
                 } : {}}>
                     {getFilteredProducts().map(p => (
                         <div key={p.idProducto} className={`product-card ${!p.disponible ? 'agotado' : ''}`} onClick={() => p.disponible && agregarApedido(p)}
-                            style={isMobile ? { minHeight: '120px', display:'flex', flexDirection:'column', justifyContent:'center' } : {}}
+                            style={isMobile ? { 
+                                minHeight: '120px', 
+                                display:'flex', flexDirection:'column', justifyContent:'center' 
+                            } : {}}
                         >
                             <span>{p.nombreProducto}</span>
                             <div className="price">{p.precio.toFixed(2)} Bs</div>
@@ -223,15 +254,14 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                         </div>
                     ))}
                 </div>
-                {/* Espacio extra al final para que el último producto no quede pegado */}
-                {isMobile && <div style={{height: '20px'}}></div>}
             </section>
 
             {/* --- SECCIÓN 2: TICKET Y BOTONES (ABAJO) --- */}
             <section className="pedido-section" style={pedidoSectionStyle}>
+                
                 {/* Header Ticket (Compacto en móvil) */}
                 <div style={{padding: '8px', background: '#fff', borderBottom: '1px solid #eee'}}>
-                    {!isMobile && <div className="pedido-header">Ticket Actual</div>} {/* Ocultar titulo en móvil para ahorrar espacio */}
+                    {!isMobile && <div className="pedido-header">Ticket Actual</div>}
                     <input 
                         type="text" 
                         placeholder="Nombre del Cliente..." 
@@ -245,7 +275,12 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                 </div>
 
                 {/* Lista scrollable DENTRO del ticket */}
-                <div className="pedido-lista" style={isMobile ? {flex: 1, overflowY: 'auto', minHeight: '100px'} : {}}>
+                <div className="pedido-lista" style={isMobile ? {
+                    flex: 1, 
+                    overflowY: 'auto', 
+                    minHeight: '100px', // Altura mínima para ver items
+                    maxHeight: '200px'  // Altura máxima para no tapar toda la pantalla
+                } : {}}>
                     {pedidoActual.length === 0 ? (
                         <div style={{textAlign:'center', padding: '20px', color: '#9ca3af'}}>
                             <p>Selecciona productos...</p>
@@ -272,9 +307,9 @@ const POSInterface = ({ products, usuarioObj, onCerrarTurno }) => {
                         {opcionesPago.map(opcion => (
                             <button key={opcion} onClick={() => setMetodoPago(opcion)}
                                 style={{
-                                    flex:1, padding:'6px', border:'1px solid #ddd', 
+                                    flex:1, padding:'8px 5px', border:'1px solid #ddd', 
                                     borderRadius:'5px', background: metodoPago===opcion ? '#333':'white',
-                                    color: metodoPago===opcion ? 'white':'#333', cursor:'pointer', fontWeight: metodoPago===opcion ? 'bold':'normal'
+                                    color: metodoPago===opcion ? 'white':'#333', cursor:'pointer', fontWeight: metodoPago===opcion ? 'bold':'normal', fontSize: '0.9rem'
                                 }}
                             >
                                 {opcion}
@@ -308,7 +343,7 @@ export const Cajero = ({ onLogout, user }) => {
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState([]);
     
-    // Detectar móvil para ajustar el contenedor principal y evitar doble scroll
+    // Detectar móvil
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -405,8 +440,7 @@ export const Cajero = ({ onLogout, user }) => {
     };
 
     return (
-        // En móvil bloqueamos el scroll general (overflow: hidden) para que scrollee el menú interno.
-        // En escritorio (auto) dejamos que se comporte normal.
+        // Contenedor Principal: En móvil bloqueamos el scroll global para usar el interno
         <div id="cajero-view" className="view" style={{paddingTop:'70px', height: '100vh', overflow: isMobile ? 'hidden' : 'auto'}}>
             <Header title="SABOR VELOZ" role="CAJERO" userName={user.nombre} onLogout={handleLogoutSeguro} />
             
