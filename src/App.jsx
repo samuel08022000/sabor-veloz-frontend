@@ -7,8 +7,8 @@ import { RegistroAsistencia } from './Components/RegistroAsistencia';
 import './index.css'; 
 
 function App() {
-    // Estado para alternar entre la aplicación principal y el registro de asistencia
-    const [view, setView] = useState('main'); // 'main' o 'asistencia'
+    // Estado para navegar entre el sistema y la asistencia
+    const [view, setView] = useState('main'); 
 
     // Intentar recuperar sesión de localStorage al cargar
     const [currentUser, setCurrentUser] = useState(() => {
@@ -17,7 +17,6 @@ function App() {
     });
 
     const handleLoginSuccess = (userData) => {
-        console.log("Usuario logueado:", userData);
         setCurrentUser(userData);
         localStorage.setItem('saborVelozUser', JSON.stringify(userData));
     };
@@ -27,31 +26,32 @@ function App() {
         localStorage.removeItem('saborVelozUser');
     };
 
-    // 1. Si la vista es 'asistencia', mostramos el componente de entrada/salida
+    // 1. Vista de Registro de Asistencia (Independiente)
     if (view === 'asistencia') {
         return <RegistroAsistencia onVolver={() => setView('main')} />;
     }
 
-    // 2. Si no hay usuario logueado, mostramos Login y el acceso a Asistencia
+    // 2. Si no hay usuario logueado, mostramos el Login + Botón de Asistencia abajo
     if (!currentUser) {
         return (
-            <div className="relative">
-                <Login onLoginSuccess={handleLoginSuccess} />
-                
-                {/* Botón flotante para acceder al Registro de Asistencia */}
-                <div className="fixed bottom-6 right-6">
-                    <button 
-                        onClick={() => setView('asistencia')}
-                        className="bg-gray-800 text-white px-6 py-3 rounded-full shadow-2xl hover:bg-black transition-all font-bold"
-                    >
-                        🕒 Registro de Asistencia
-                    </button>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
+                {/* Contenedor del Login */}
+                <div className="w-full max-w-md">
+                    <Login onLoginSuccess={handleLoginSuccess} />
                 </div>
+
+                {/* --- BOTÓN DEBAJO DEL INICIO DE SESIÓN --- */}
+                <button 
+                    onClick={() => setView('asistencia')}
+                    className="mt-6 bg-white border-2 border-red-600 text-red-600 px-8 py-3 rounded-lg font-bold hover:bg-red-50 transition-colors shadow-md flex items-center gap-2"
+                >
+                    <span>🕒</span> REGISTRO DE ASISTENCIA (EMPLEADOS)
+                </button>
             </div>
         );
     }
 
-    // 3. Si hay usuario, renderizamos según su Rol (Lógica original)
+    // 3. Renderizar según el Rol si ya está logueado
     switch (currentUser.rol) {
         case 'Administrador':
         case 'Admin':
@@ -65,7 +65,7 @@ function App() {
             return (
                 <div className="view">
                     Rol no reconocido: {currentUser.rol} 
-                    <button onClick={handleLogout} className="ml-4 underline">Salir</button>
+                    <button onClick={handleLogout} className="btn-primary mt-4">Salir</button>
                 </div>
             );
     }
