@@ -1,77 +1,131 @@
 import React, { useState } from 'react';
-import axios from '../api/axios'; // Asegúrate de que la ruta sea correcta
+import api from '../api/axios';
 
 export const RegistroAsistencia = ({ onVolver }) => {
+    const [paso, setPaso] = useState(1); // 1: Selección, 2: Formulario
+    const [tipoRegistro, setTipoRegistro] = useState(''); // 'ingreso' o 'salida'
     const [datos, setDatos] = useState({ nombre: '', apellido: '' });
     const [mensaje, setMensaje] = useState({ texto: '', tipo: '' });
+    const [loading, setLoading] = useState(false);
 
-    const handleRegistro = async (tipo) => {
-        if (!datos.nombre || !datos.apellido) {
-            setMensaje({ texto: "Por favor completa nombre y apellido", tipo: "error" });
-            return;
-        }
+    const seleccionarTipo = (tipo) => {
+        setTipoRegistro(tipo);
+        setPaso(2);
+    };
+
+    const handleFinalizar = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setMensaje({ texto: '', tipo: '' });
 
         try {
-            const endpoint = tipo === 'ingreso' ? '/api/asistencia/ingreso' : '/api/asistencia/salida';
-            const res = await axios.post(endpoint, datos);
-            setMensaje({ texto: res.data.mensaje, tipo: "success" });
-            setDatos({ nombre: '', apellido: '' });
+            const endpoint = tipoRegistro === 'ingreso' ? '/api/asistencia/ingreso' : '/api/asistencia/salida';
+            const res = await api.post(endpoint, datos);
+            
+            setMensaje({ texto: res.data.mensaje || "¡Registro exitoso!", tipo: 'success' });
+            
+            // Esperar 2 segundos y volver al inicio de asistencia
+            setTimeout(() => {
+                setPaso(1);
+                setDatos({ nombre: '', apellido: '' });
+                setMensaje({ texto: '', tipo: '' });
+            }, 2000);
+
         } catch (err) {
-            setMensaje({ texto: err.response?.data || "Error en el registro", tipo: "error" });
+            setMensaje({ 
+                texto: err.response?.data || "Error al registrar. Verifica si ya marcaste hoy.", 
+                tipo: 'error' 
+            });
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#f4f4f4]">
-            {/* Logo Sabor Veloz */}
-            <div className="mb-8 text-center">
-                <h1 className="text-4xl font-bold text-red-600">SABOR VELOZ</h1>
-                <p className="text-gray-600 font-semibold italic">Registro de Personal</p>
-            </div>
+        <div id="login-view" className="view">
+            <div className="login-container">
+                <h1 className="logo-login">SABOR VELOZ</h1>
+                
+                <div className="login-form-box" style={{ textAlign: 'center' }}>
+                    
+                    {paso === 1 ? (
+                        <>
+                            <h2 style={{ marginBottom: '20px', color: '#333', fontWeight: 'bold' }}>CONTROL DE PERSONAL</h2>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <button 
+                                    onClick={() => seleccionarTipo('ingreso')}
+                                    className="btn-primary"
+                                    style={{ background: '#10b981', height: '80px', fontSize: '1.2rem' }}
+                                >
+                                    📥 REGISTRAR ENTRADA
+                                </button>
+                                <button 
+                                    onClick={() => seleccionarTipo('salida')}
+                                    className="btn-primary"
+                                    style={{ background: '#ef4444', height: '80px', fontSize: '1.2rem' }}
+                                >
+                                    📤 REGISTRAR SALIDA
+                                </button>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <h2 style={{ marginBottom: '20px', color: '#333', fontWeight: 'bold' }}>
+                                {tipoRegistro === 'ingreso' ? '📝 DATOS DE ENTRADA' : '📝 DATOS DE SALIDA'}
+                            </h2>
+                            <form onSubmit={handleFinalizar}>
+                                <div className="input-group">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Nombre" 
+                                        required
+                                        value={datos.nombre}
+                                        onChange={(e) => setDatos({ ...datos, nombre: e.target.value })}
+                                    />
+                                </div>
+                                <div className="input-group">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Apellido" 
+                                        required
+                                        value={datos.apellido}
+                                        onChange={(e) => setDatos({ ...datos, apellido: e.target.value })}
+                                    />
+                                </div>
 
-            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-                <div className="space-y-4">
-                    <input
-                        type="text"
-                        placeholder="Nombre"
-                        className="w-full p-3 border rounded focus:ring-2 focus:ring-red-500 outline-none"
-                        value={datos.nombre}
-                        onChange={(e) => setDatos({ ...datos, nombre: e.target.value })}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Apellido"
-                        className="w-full p-3 border rounded focus:ring-2 focus:ring-red-500 outline-none"
-                        value={datos.apellido}
-                        onChange={(e) => setDatos({ ...datos, apellido: e.target.value })}
-                    />
+                                <button type="submit" className="btn-primary" disabled={loading}>
+                                    {loading ? 'Procesando...' : 'CONFIRMAR REGISTRO'}
+                                </button>
+
+                                <button 
+                                    type="button" 
+                                    onClick={() => setPaso(1)} 
+                                    style={{ marginTop: '15px', background: 'transparent', color: '#666', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
+                                >
+                                    Volver atrás
+                                </button>
+                            </form>
+                        </>
+                    )}
+
+                    {mensaje.texto && (
+                        <p style={{ 
+                            marginTop: '15px', 
+                            color: mensaje.tipo === 'success' ? '#10b981' : '#ef4444',
+                            fontWeight: 'bold'
+                        }}>
+                            {mensaje.texto}
+                        </p>
+                    )}
                 </div>
 
-                {mensaje.texto && (
-                    <div className={`mt-4 p-2 text-center rounded ${mensaje.tipo === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                        {mensaje.texto}
-                    </div>
-                )}
-
-                <div className="flex gap-4 mt-8">
-                    <button
-                        onClick={() => handleRegistro('ingreso')}
-                        className="flex-1 bg-green-600 text-white py-4 rounded-lg font-bold hover:bg-green-700 transition"
-                    >
-                        REGISTRAR INGRESO
-                    </button>
-                    <button
-                        onClick={() => handleRegistro('salida')}
-                        className="flex-1 bg-red-600 text-white py-4 rounded-lg font-bold hover:bg-red-700 transition"
-                    >
-                        REGISTRAR SALIDA
-                    </button>
-                </div>
+                <button 
+                    onClick={onVolver}
+                    style={{ marginTop: '20px', color: 'white', background: 'rgba(0,0,0,0.5)', border: 'none', padding: '10px 20px', borderRadius: '20px', cursor: 'pointer' }}
+                >
+                    ⬅️ Volver al Login Principal
+                </button>
             </div>
-            
-            <button onClick={onVolver} className="mt-6 text-gray-500 hover:underline">
-                Volver al Login
-            </button>
         </div>
     );
 };
