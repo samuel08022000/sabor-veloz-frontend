@@ -19,32 +19,29 @@ export const RegistroAsistencia = ({ onVolver }) => {
         setMensaje({ texto: '', tipo: '' });
 
         try {
+            // Endpoints correctos según tu Backend
             const endpoint = tipoRegistro === 'ingreso' ? '/api/asistencia/ingreso' : '/api/asistencia/salida';
             const res = await api.post(endpoint, datos);
             
             setMensaje({ texto: res.data.mensaje || "¡Registro exitoso!", tipo: 'success' });
             
-            // Esperar 2 segundos y volver al inicio de asistencia
+            // Esperar 2 segundos para que lean el mensaje y volver al inicio
             setTimeout(() => {
                 setPaso(1);
                 setDatos({ nombre: '', apellido: '' });
                 setMensaje({ texto: '', tipo: '' });
             }, 2000);
 
-                } catch (err) {
-    // Si el backend manda un mensaje de error (como "Marca entrada primero")
-    // lo capturamos aquí para mostrarlo en el recuadro blanco.
-    const mensajeError = err.response?.data?.mensaje || err.response?.data || "Error al conectar con el servidor";
-    setMensaje({ 
-        texto: typeof mensajeError === 'string' ? mensajeError : "Error de registro", 
-        tipo: 'error'
+        } catch (err) {
+            // Capturamos el mensaje de error real del Backend
+            const mensajeError = err.response?.data?.mensaje || err.response?.data || "Error al conectar con el servidor";
+            setMensaje({ 
+                texto: typeof mensajeError === 'string' ? mensajeError : "Error de registro", 
+                tipo: 'error'
             });
         } finally {
             setLoading(false);
         }
- 
-    
-}
     };
 
     return (
