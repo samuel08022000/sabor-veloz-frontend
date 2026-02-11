@@ -110,13 +110,12 @@ const GestionProductos = () => {
                                 <td><span style={{ padding: '4px 8px', background: '#e5e7eb', borderRadius: '4px', fontSize: '0.85rem' }}>{p.categoria}</span></td>
                                 <td style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{p.precio.toFixed(2)} Bs</td>
                                 <td><span style={{ color: p.disponible ? '#10b981' : '#ef4444', fontWeight: 'bold' }}>{p.disponible ? 'Activo' : 'Inactivo'}</span></td>
-                                {/* 🔥🔥🔥 AQUÍ ESTÁN LOS BOTONES NUEVOS 🔥🔥🔥 */}
                                 <td>
                                     <div style={{ display: 'flex', gap: '8px' }}>
                                         <button
                                             onClick={() => iniciarEdicion(p)}
                                             style={{
-                                                backgroundColor: '#3b82f6', // Azul
+                                                backgroundColor: '#3b82f6',
                                                 color: 'white',
                                                 border: 'none',
                                                 padding: '6px 12px',
@@ -132,7 +131,7 @@ const GestionProductos = () => {
                                         <button
                                             onClick={() => handleEliminar(p.idProducto)}
                                             style={{
-                                                backgroundColor: '#ef4444', // Rojo
+                                                backgroundColor: '#ef4444',
                                                 color: 'white',
                                                 border: 'none',
                                                 padding: '6px 12px',
@@ -178,7 +177,7 @@ const ReportesVentas = () => {
 
     const handleExportar = (tipo) => {
         const baseURL = "https://saborvelozweb-production.up.railway.app"; 
-    window.open(`${baseURL}/api/Reportes/exportar/${tipo}`, '_blank');
+        window.open(`${baseURL}/api/Reportes/exportar/${tipo}`, '_blank');
     };
 
     if (loading) return <div style={{ padding: 40, textAlign: 'center' }}>Cargando...</div>;
@@ -200,10 +199,13 @@ const ReportesVentas = () => {
                     <button className="btn-secondary" onClick={() => handleExportar('mensual')} title="Descargar Mensual">
                         <i className="fas fa-calendar-alt" style={{ marginRight: '8px', color: '#8b5cf6' }}></i> Mensual
                     </button>
+                    {/* ⭐ NUEVO BOTÓN DE ASISTENCIA ⭐ */}
+                    <button className="btn-secondary" onClick={() => handleExportar('asistencia')} title="Descargar Asistencia">
+                        <i className="fas fa-user-clock" style={{ marginRight: '8px', color: '#f59e0b' }}></i> Asistencia
+                    </button>
                 </div>
             </div>
 
-            {/* --- KPIs con Bs al final --- */}
             <div className="kpi-grid">
                 <div className="kpi-card">
                     <div className="kpi-icon icon-day"><i className="fas fa-coins"></i></div>
@@ -273,7 +275,6 @@ const ReportesVentas = () => {
                                         </td>
                                         <td>{venta.cajero}</td>
                                         <td><span className="badge-pago" style={{ background: '#e0f2fe', color: '#0369a1' }}>{venta.metodoPago}</span></td>
-                                        {/* CORRECCIÓN: Total con Bs al final */}
                                         <td style={{ fontWeight: 'bold' }}>{venta.total.toFixed(2)} Bs</td>
                                         <td>
                                             <span style={{
