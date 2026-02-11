@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import api from '../api/axios'; // Importamos nuestra config
 
-export const Login = ({ onLoginSuccess }) => {
+export const Login = ({ onLoginSuccess, onAsistenciaClick }) => {
     const [usuario, setUsuario] = useState('');
-    const [password, setPassword] = useState(''); // Backend espera "Password", no "contrasena"
+    const [password, setPassword] = useState(''); 
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -13,16 +13,13 @@ export const Login = ({ onLoginSuccess }) => {
         setLoading(true);
 
         try {
-            // El DTO del backend espera { Usuario, Password }
             const response = await api.post('/Auth/login', { 
                 Usuario: usuario, 
                 Password: password 
             });
 
-            // Si llegamos aquí, es 200 OK.
-            // Pasamos todos los datos (IdUsuario, Rol, Nombre) hacia arriba
             onLoginSuccess({
-                idUsuario: response.data.idUsuario, // Asegúrate de agregar esto en el backend
+                idUsuario: response.data.idUsuario,
                 nombre: response.data.nombre,
                 usuario: response.data.usuario,
                 rol: response.data.rol
@@ -66,13 +63,34 @@ export const Login = ({ onLoginSuccess }) => {
                             />
                         </div>
 
-                        {/* Eliminamos el selector de roles manual, el backend decide el rol */}
-                        
-                        <button type="submit" className="btn-primary" disabled={loading}>
+                        <button type="submit" className="btn-primary" disabled={loading} style={{width: '100%'}}>
                             {loading ? 'Cargando...' : 'Iniciar Sesión'}
                         </button>
                     </form>
+
                     {error && <p className="error-message" style={{color: 'red', marginTop: '10px'}}>{error}</p>}
+
+                    {/* --- ESTO ES LO NUEVO: Botón dentro del mismo recuadro --- */}
+                    <div style={{marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #eee'}}>
+                        <button 
+                            type="button" 
+                            onClick={onAsistenciaClick}
+                            className="btn-asistencia-link"
+                            style={{
+                                width: '100%',
+                                background: 'transparent',
+                                border: '2px solid #e11d48', // Color rojo Sabor Veloz
+                                color: '#e11d48',
+                                padding: '10px',
+                                borderRadius: '10px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                transition: '0.3s'
+                            }}
+                        >
+                            🕒 REGISTRO DE ASISTENCIA
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

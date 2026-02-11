@@ -1,22 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Login } from './Components/Login';
 import { AdminDashboard } from './Components/AdminDashboard';
 import { Cajero } from './Components/Cajero';
 import { Cocina } from './Components/Cocina';
-import { RegistroAsistencia } from './Components/RegistroAsistencia';
+import { RegistroAsistencia } from './Components/RegistroAsistencia'; 
 import './index.css'; 
 
 function App() {
-    // Estado para navegar entre el sistema y la asistencia
-    const [view, setView] = useState('main'); 
+    // 1. Estado para navegar entre el Login y la Asistencia
+    const [view, setView] = useState('main'); // 'main' o 'asistencia'
 
-    // Intentar recuperar sesión de localStorage al cargar
+    // 2. Intentar recuperar sesión de localStorage al cargar
     const [currentUser, setCurrentUser] = useState(() => {
         const saved = localStorage.getItem('saborVelozUser');
         return saved ? JSON.parse(saved) : null;
     });
 
     const handleLoginSuccess = (userData) => {
+        console.log("Usuario logueado:", userData); // Mantenemos tu log original
         setCurrentUser(userData);
         localStorage.setItem('saborVelozUser', JSON.stringify(userData));
     };
@@ -26,33 +27,23 @@ function App() {
         localStorage.removeItem('saborVelozUser');
     };
 
-    // 1. Vista de Registro de Asistencia (Independiente)
+    // --- LÓGICA DE NAVEGACIÓN ---
+
+    // Si el usuario hizo clic en el botón de asistencia, mostramos esa vista
     if (view === 'asistencia') {
         return <RegistroAsistencia onVolver={() => setView('main')} />;
     }
 
-    // 2. Si no hay usuario logueado, mostramos el Login + Botón de Asistencia abajo
+    // Si no hay usuario logueado, mostramos el Login con el nuevo botón integrado
     if (!currentUser) {
-        return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-                {/* Contenedor del Login */}
-                <div className="w-full max-w-md">
-                    <Login onLoginSuccess={handleLoginSuccess} />
-                </div>
-
-                {/* --- BOTÓN DEBAJO DEL INICIO DE SESIÓN --- */}
-                <button 
-                    onClick={() => setView('asistencia')}
-                    className="mt-6 bg-white border-2 border-red-600 text-red-600 px-8 py-3 rounded-lg font-bold hover:bg-red-50 transition-colors shadow-md flex items-center gap-2"
-                >
-                    <span>🕒</span> REGISTRO DE ASISTENCIA (EMPLEADOS)
-                </button>
-            </div>
-        );
+        return <Login 
+            onLoginSuccess={handleLoginSuccess} 
+            onAsistenciaClick={() => setView('asistencia')} 
+        />;
     }
 
-    // 3. Renderizar según el Rol si ya está logueado
-    switch (currentUser.rol) {
+    // Renderizar según el Rol que viene del Backend (Tu lógica original intacta)
+    switch (currentUser.rol) { 
         case 'Administrador':
         case 'Admin':
             return <AdminDashboard onLogout={handleLogout} userName={currentUser.nombre} />;
@@ -65,7 +56,7 @@ function App() {
             return (
                 <div className="view">
                     Rol no reconocido: {currentUser.rol} 
-                    <button onClick={handleLogout} className="btn-primary mt-4">Salir</button>
+                    <button onClick={handleLogout} className="btn-primary" style={{marginLeft: '10px'}}>Salir</button>
                 </div>
             );
     }
