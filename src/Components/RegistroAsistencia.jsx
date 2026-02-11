@@ -31,14 +31,20 @@ export const RegistroAsistencia = ({ onVolver }) => {
                 setMensaje({ texto: '', tipo: '' });
             }, 2000);
 
-        } catch (err) {
-            setMensaje({ 
-                texto: err.response?.data || "Error al registrar. Verifica si ya marcaste hoy.", 
-                tipo: 'error' 
+                } catch (err) {
+    // Si el backend manda un mensaje de error (como "Marca entrada primero")
+    // lo capturamos aquí para mostrarlo en el recuadro blanco.
+    const mensajeError = err.response?.data?.mensaje || err.response?.data || "Error al conectar con el servidor";
+    setMensaje({ 
+        texto: typeof mensajeError === 'string' ? mensajeError : "Error de registro", 
+        tipo: 'error'
             });
         } finally {
             setLoading(false);
         }
+ 
+    
+}
     };
 
     return (
